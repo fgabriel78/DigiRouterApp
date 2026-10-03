@@ -1,0 +1,17 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+# Router secrets / discovery dumps must never be committed
+router_pwd.txt
+tools/discovery-out/
+*.keystore
+*.jks
+
+# Build outputs / editor settings
+bin/
+.vscode/
+*.apk

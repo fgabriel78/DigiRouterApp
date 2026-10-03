@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Router body; the three LEDs are cut out (even-odd) so the icon also works as a monochrome icon -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M30,58 H78 A6,6 0 0 1 84,64 V72 A6,6 0 0 1 78,78 H30 A6,6 0 0 1 24,72 V64 A6,6 0 0 1 30,58 Z M33.5,68 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z M43.5,68 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z M53.5,68 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z" />
+    <!-- Antennas -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M31,38 H35 V58 H31 Z M73,38 H77 V58 H73 Z" />
+    <!-- Wi-Fi signal -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M44,43 A14,14 0 0 1 64,43 M48.5,49 A7,7 0 0 1 59.5,49" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,54.5 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z" />
+</vector>

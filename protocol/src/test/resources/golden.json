@@ -1,0 +1,40 @@
+{
+  "nn": "B1B8BF89EDA5B846250A9012A4EA62ADF3C26D747A0D32BFCC4F081EEB074F94A12D41660B7F865F7825136906CF6872B4B4E27910D0073D25485B1272FA3AFB",
+  "ee": "010001",
+  "rsa": [
+    {
+      "plain": "h=0123456789abcdef0123456789abcdef&s=868691960",
+      "hex": "521c74c21074d542cc6b3c151b92efab91962bda00067c80f86167fc44057010fdd5453bdf98f93fdcf3400dc31628ea33ff57e5a33324cee7c1d879a491265e"
+    },
+    {
+      "plain": "key=1234567890123456&iv=6543210987654321&h=21232f297a57a5a743894a0e4a801fc3&s=868692500",
+      "hex": "ae4e74db3bac6b57adaac948cf12354e535b187c473c2efa7d614fdea767eed5a9c7859e7620216de7d55da77d6ea5b42a7154ae5f0911f6a7179e3e0b922b9aa42a362a631d8bd38b5f1b0df3b9ff0cc43335f9bf19a2cb5ddc0bd411fe1709891a896a9fd3fa3cc1e3e80bb62d7379fbf8f18da8fb5acea8d156563daf07ae"
+    },
+    {
+      "plain": "key=1234567890123456&iv=6543210987654321&h=21232f297a57a5a743894a0e4a801fc3&s=868692500&extra=padding-to-force-two-chunks-xxxxxxxxxxxx",
+      "hex": "ae4e74db3bac6b57adaac948cf12354e535b187c473c2efa7d614fdea767eed5a9c7859e7620216de7d55da77d6ea5b42a7154ae5f0911f6a7179e3e0b922b9a752a13cecb316d89a0815c019279f9a3b0a7ccc5780ef637d0afaa8e50a92fba670295e3e50ef57c0a2dac01e93eb47eac6443e785ac95eaa8775e7f3c3679a9a51a13a65c3c3750b70458f7792c76499ae238a8cbdb6fa8a4c4128d6261810a017cea4021359bcfcaa002acdec2ddf0e1454a4d0a6fa564d151527e5b3fe19a"
+    }
+  ],
+  "aes": [
+    {
+      "plain": "{\"data\":{\"a\":\"b\"},\"operation\":\"go\",\"oid\":\"Device.X\"}",
+      "login": 0,
+      "data": "dEjrFDfxOQNQT4fbyTX6ced4aGrLn1BCJ4S/Tp5BMm6B3uO2xIbGaDTHz4YhrmLN4QH4GP+W/5z9RUCr5mkQ9w==",
+      "sign": "86089bda4b8f4e2c5102d28df82b42a6fb2022c0ff5ed5077167781ab05700c9340d3e9288614a061fb75b54d33678d29db5eaf0335a0454c56b1d1ac5b332fb",
+      "decrypted": "{\"data\":{\"a\":\"b\"},\"operation\":\"go\",\"oid\":\"Device.X\"}"
+    },
+    {
+      "plain": "{\"oid\":\"/cgi/login\"}",
+      "login": 1,
+      "data": "s/GpSUhwxcJWHwAcn4Avkby/oNADqe0Rlhbf82g+M90=",
+      "sign": "041b5e7f94096bd59ce8ebf640e5763814a512f1d73541f6075ab645603274ac42691af2ec16dfe46b8d4f2e1332854bb80f74058e584b152e3f5b355153a8a522fe864655ff866f4500b0e1bc9fd8548b0d1e7b61eab1e31340cb4d32e2b1f6be09b53ed33afbb4a2d486cbd40c6cb77a64407905d3a6a8a6e57511f007476d",
+      "decrypted": "{\"oid\":\"/cgi/login\"}"
+    }
+  ],
+  "md5": [
+    {
+      "plain": "adminsecret-pass",
+      "hex": "b41a758c083fe58b1a214d3e78f4cd3c"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        The router's web interface is plain HTTP on the local network (no TLS available on the device).
+        The app only ever talks to the router address configured by the user.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
