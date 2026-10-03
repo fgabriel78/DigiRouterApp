@@ -54,8 +54,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import es.routerapp.protocol.pages.ConnectedDevice
+import es.routerapp.protocol.pages.ConnectedDevices
 import es.routerapp.protocol.pages.Group
-import es.routerapp.protocol.pages.Instance
 import es.routerapp.protocol.pages.PageEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -109,7 +110,7 @@ fun DashboardScreen(engine: PageEngine, onBack: () -> Unit) {
                     info = one("DEV2_DEV_INFO"),
                     wan = wans.firstOrNull { it["name"] == active },
                     gpon = first("DEV2_GPON_INTF_STATS"),
-                    hosts = PageEngine.toInstances(c.getList("DEV2_HOST_ENTRY")).count { it.values["active"] == "1" },
+                    hosts = ConnectedDevices.load(c).count { it.active },
                     wifi = PageEngine.toInstances(c.getList("DEV2_ADT_WIFI_COMMON")).map { it.values },
                 )
             }
@@ -220,10 +221,6 @@ fun DashboardScreen(engine: PageEngine, onBack: () -> Unit) {
 
 private enum class DeviceFilter { ALL, WIFI, CABLE, OFFLINE }
 
-private class Device(
-    val name: String, val ip: String, val mac: String, val wifi: Boolean, val level: Int?, val rate: Long?, val active: Boolean,
-)
-
 private fun signalIcon(level: Int?): ImageVector = when {
     level == null -> Icons.Filled.Wifi
     level >= 4 -> Icons.Filled.SignalWifi4Bar
@@ -236,28 +233,10 @@ private fun signalIcon(level: Int?): ImageVector = when {
 fun DevicesScreen(engine: PageEngine, onBack: () -> Unit) {
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
-    val data by produceState<Result<List<Device>>?>(null, reloadKey) {
+    val data by produceState<Result<List<ConnectedDevice>>?>(null, reloadKey) {
         value = null
         value = withContext(Dispatchers.IO) {
-            runCatching {
-                val c = engine.client
-                val hosts = PageEngine.toInstances(c.getList("DEV2_HOST_ENTRY"))
-                val wifi = runCatching { PageEngine.toInstances(c.getList("DEV2_WIFI_APDEV_ASSOCDEV")) }.getOrDefault(emptyList<Instance>())
-                    .associateBy { it.values["X_TP_IPAddress"] }
-                hosts.map { h ->
-                    val v = h.values
-                    val w = wifi[v["IPAddress"]]?.values
-                    Device(
-                        name = v["hostName"].orEmpty().ifEmpty { v["IPAddress"].orEmpty() },
-                        ip = v["IPAddress"].orEmpty(),
-                        mac = v["physAddress"].orEmpty(),
-                        wifi = w != null || v["interfaceType"] == "802.11",
-                        level = w?.get("X_TP_SignalStrengthLevel")?.toIntOrNull(),
-                        rate = w?.get("lastDataDownlinkRate")?.toLongOrNull()?.div(1000),
-                        active = v["active"] == "1",
-                    )
-                }.sortedWith(compareByDescending<Device> { it.active }.thenBy { it.name.lowercase() })
-            }
+            runCatching { ConnectedDevices.load(engine.client) }
         }
     }
     var filter by rememberSaveable { mutableStateOf(DeviceFilter.ALL) }

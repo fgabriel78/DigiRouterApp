@@ -2,6 +2,7 @@ package es.routerapp.protocol.discovery
 
 import es.routerapp.protocol.RouterClient
 import es.routerapp.protocol.RouterException
+import es.routerapp.protocol.pages.ConnectedDevices
 import es.routerapp.protocol.pages.PageEngine
 import java.io.File
 
@@ -19,7 +20,8 @@ fun main(args: Array<String>) {
         step("activeWan") { engine.activeWanName() }
         step("go DEV2_GPON_INTF_STATS") { PageEngine.toInstances(client.get("DEV2_GPON_INTF_STATS")).size }
         step("gl DEV2_GPON_INTF_STATS") { PageEngine.toInstances(client.getList("DEV2_GPON_INTF_STATS")).size }
-        step("gl DEV2_HOST_ENTRY") { PageEngine.toInstances(client.getList("DEV2_HOST_ENTRY")).size }
+        step("gl DEV2_HOST_ENTRY (no longer used by the app; 71011 on FW 3.2.1)") { PageEngine.toInstances(client.getList("DEV2_HOST_ENTRY")).size }
+        step("ConnectedDevices.load (Devices screen + Summary counter)") { ConnectedDevices.load(client).let { l -> "${l.size} devices, ${l.count { it.active }} active" } }
         step("gl DEV2_ADT_WIFI_COMMON") { PageEngine.toInstances(client.getList("DEV2_ADT_WIFI_COMMON")).size }
         step("gl DEV2_WIFI_APDEV_ASSOCDEV") { PageEngine.toInstances(client.getList("DEV2_WIFI_APDEV_ASSOCDEV")).size }
     } finally {
