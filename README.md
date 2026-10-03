@@ -103,7 +103,34 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Or copy the APK to the phone and open it (Android will ask you to allow installing from that source). To use `adb`, enable USB debugging on the phone first.
 
-> The `release` build has minification enabled but is not signed: to distribute it you will have to add your own signing key (`*.keystore` and `*.jks` files are in `.gitignore`).
+### Release build
+
+The `release` build has minification (R8) enabled and is signed with **your own key**, which is never stored in the repository (`*.jks`, `*.keystore` and `keystore.properties` are in `.gitignore`).
+
+1. Create a key (once) and keep a backup of it: without it you cannot publish updates.
+
+   ```bash
+   keytool -genkeypair -v -keystore my-release.jks -alias my-alias -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. Create `keystore.properties` in the project root (paths are relative to it):
+
+   ```properties
+   storeFile=my-release.jks
+   storePassword=...
+   keyAlias=my-alias
+   keyPassword=...
+   ```
+
+   Alternatively, define the environment variables `RELEASE_STORE_FILE`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`. Without either, the release APK is built **unsigned** and cannot be installed.
+
+3. Build it:
+
+   ```bash
+   ./gradlew :app:assembleRelease    # app/build/outputs/apk/release/app-release.apk
+   ```
+
+Test the release APK on a device before publishing it: minification can break code that relies on reflection.
 
 ### Automated tests
 
