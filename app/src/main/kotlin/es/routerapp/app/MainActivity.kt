@@ -147,8 +147,13 @@ private fun LoginScreen(state: UiState, onAddress: (String) -> Unit, onUsername:
             state.error?.let {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Filled.Info, null, tint = c.error)
+                    val errorRes = when (it) {
+                        LoginError.WrongPassword -> R.string.login_wrong_password
+                        LoginError.CleartextRestricted -> R.string.login_cleartext_restricted
+                        LoginError.Unreachable, LoginError.Other -> R.string.login_unreachable
+                    }
                     Text(
-                        stringResource(if (it == LoginError.WrongPassword) R.string.login_wrong_password else R.string.login_unreachable),
+                        stringResource(errorRes),
                         color = c.error, style = MaterialTheme.typography.bodyMedium,
                     )
                 }

@@ -1,9 +1,6 @@
-# auth-session Specification
+# Spec Delta
 
-## Purpose
-Manages router connection endpoints, single-session concurrency arbitration, user authentication state, and ephemeral in-memory credential lifecycles for the mobile application.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Router Address and Endpoint Configuration
 The system SHALL permit specifying the router's network address, restrict cleartext HTTP transport exclusively to local network ranges, and configure the underlying API client accordingly.
@@ -27,45 +24,6 @@ The system SHALL permit specifying the router's network address, restrict cleart
 - **GIVEN** a configured address pointing to a public IP or remote domain outside local network ranges
 - **WHEN** the app attempts to initiate cleartext HTTP communication
 - **THEN** the system rejects or blocks the cleartext connection attempt and prevents cleartext transmission.
-
-### Requirement: User Authentication Flow
-The system SHALL authenticate the user against the router asynchronously without blocking the user interface.
-
-#### Scenario: Perform login submission
-- **GIVEN** the login screen with address, username, and password entered
-- **WHEN** the user taps the login button
-- **THEN** the UI displays an indeterminate progress indicator, disables further input, and dispatches the login call on an IO background thread.
-
-#### Scenario: Session transition upon successful login
-- **GIVEN** a successful authentication response from the router
-- **WHEN** the login call returns without errors
-- **THEN** the system instantiates `PageEngine`, transitions the app state to `loggedIn = true`, and navigates to the home navigation grid with a smooth scale-fade animation.
-
-### Requirement: Single-Session Concurrency Arbitration
-The system SHALL inform the user of the router's single-administrator session limitation and handle concurrent session conflicts.
-
-#### Scenario: Display concurrency limitation hint
-- **GIVEN** the login screen
-- **WHEN** the view renders
-- **THEN** an informational badge reminds the user that the router only permits one concurrent administration session, advising them to close any active browser sessions.
-
-#### Scenario: Conflict with active web session
-- **GIVEN** an active web browser administration session open on a computer
-- **WHEN** the user logs in from the mobile app
-- **THEN** the router accepts the new login and automatically terminates the previous web session.
-
-### Requirement: Ephemeral Credential Lifecycle
-The system SHALL never persist the administrative password to non-volatile local storage.
-
-#### Scenario: Credential storage policy
-- **GIVEN** a logged-in session
-- **WHEN** the app runs or is terminated
-- **THEN** the password is held exclusively in memory during the active session and is never written to `SharedPreferences`, local databases, or files.
-
-#### Scenario: Explicit session logout
-- **GIVEN** an active logged-in session
-- **WHEN** the user taps the logout action in the top app bar
-- **THEN** the system executes `/cgi/logout` on the router, resets `UiState`, clears the in-memory engine, and returns to the login screen.
 
 ### Requirement: Login Error Categorization
 The system SHALL categorize login and connectivity failures and present clear localized diagnostic messages.

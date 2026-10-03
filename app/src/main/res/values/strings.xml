@@ -9,6 +9,7 @@
     <string name="login_busy_warning">Another administration session is open on the router. Continuing will close it.</string>
     <string name="login_wrong_password">Wrong password</string>
     <string name="login_unreachable">Cannot reach the router. Make sure you are connected to its Wi-Fi.</string>
+    <string name="login_cleartext_restricted">Cleartext communication is restricted to local network ranges. Please verify the router address.</string>
     <string name="logout">Sign out</string>
     <string name="err_router">The router rejected the operation (code %1$d)</string>
     <string name="err_network">Cannot reach the router (%1$s)</string>

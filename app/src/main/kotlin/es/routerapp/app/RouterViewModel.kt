@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.net.UnknownServiceException
 
-enum class LoginError { WrongPassword, Unreachable, Other }
+enum class LoginError { WrongPassword, Unreachable, CleartextRestricted, Other }
 
 data class UiState(
     val address: String = "192.168.1.1",
@@ -49,7 +50,11 @@ class RouterViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val c = RouterClient("http://" + _state.value.address)
+                    val address = _state.value.address
+                    if (!LocalNetworkValidator.isLocalAddress(address)) {
+                        throw SecurityException("Cleartext communication is restricted to local network ranges: $address")
+                    }
+                    val c = RouterClient("http://" + address)
                     val busy = c.busy()
                     c.login(password, _state.value.username)
                     client = c
@@ -60,14 +65,7 @@ class RouterViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { s ->
                 result.fold(
                     onSuccess = { s.copy(loggingIn = false, loggedIn = true, otherSessionActive = it) },
-                    onFailure = {
-                        val err = when {
-                            it is RouterException -> LoginError.WrongPassword
-                            it is IOException -> LoginError.Unreachable
-                            else -> LoginError.Other
-                        }
-                        s.copy(loggingIn = false, error = err)
-                    },
+                    onFailure = { s.copy(loggingIn = false, error = mapLoginError(it)) },
                 )
             }
         }
@@ -81,3 +79,13 @@ class RouterViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch(Dispatchers.IO) { runCatching { c.logout() } }
     }
 }
+
+internal fun mapLoginError(t: Throwable): LoginError = when {
+    t is SecurityException -> LoginError.CleartextRestricted
+    t is UnknownServiceException -> LoginError.CleartextRestricted
+    t.message?.contains("CLEARTEXT", ignoreCase = true) == true -> LoginError.CleartextRestricted
+    t is RouterException -> LoginError.WrongPassword
+    t is IOException -> LoginError.Unreachable
+    else -> LoginError.Other
+}
+

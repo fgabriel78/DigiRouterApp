@@ -135,10 +135,10 @@ Test the release APK on a device before publishing it: minification can break co
 ### Automated tests
 
 ```bash
-./gradlew :protocol:test
+./gradlew test
 ```
 
-This includes tests of the cryptographic vectors. There is also a test against a real router that only runs if you set the `ROUTER_LIVE=1` environment variable (it only makes unauthenticated queries).
+This runs unit tests across both modules (`:protocol:test` for cryptographic vectors and `:app:test` for local address validation and error handling). There is also a test against a real router that only runs if you set the `ROUTER_LIVE=1` environment variable (it only makes unauthenticated queries).
 
 ## Usage
 
@@ -195,7 +195,7 @@ Almost every screen is described in [`Catalog.kt`](protocol/src/main/kotlin/es/r
 
 ## Security and privacy
 
-- The app uses plain HTTP because that is what the router offers on the local network; the request contents are encrypted with the router's own protocol. For that reason `network_security_config.xml` allows cleartext traffic across the whole app (the app only connects to the router address you enter). Restricting it to local network ranges is a pending improvement.
+- The app uses plain HTTP because that is what the router offers on the local network; the request contents are encrypted with the router's own protocol. In `network_security_config.xml`, cleartext traffic is disabled globally and restricted to local network ranges and standard router gateways (RFC 1918 private subnets, loopback, link-local, and local domains like `.local` and `.lan`), with application-level validation on the configured address.
 - **Never push** the contents of `tools/discovery-out/` or files containing your password to a public repository. Both are in `.gitignore`.
 - If you find a security issue, open an [issue](https://github.com/fgabriel78/DigiRouterApp/issues) without including personal data or credentials.
 

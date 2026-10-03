@@ -9,6 +9,7 @@
     <string name="login_busy_warning">Hay otra sesión de administración abierta en el router. Si continúas, se cerrará.</string>
     <string name="login_wrong_password">Contraseña incorrecta</string>
     <string name="login_unreachable">No se puede contactar con el router. Comprueba que estás conectado a su Wi-Fi.</string>
+    <string name="login_cleartext_restricted">La comunicación sin cifrar está restringida a redes locales. Comprueba la dirección del router.</string>
     <string name="logout">Cerrar sesión</string>
     <string name="err_router">El router rechazó la operación (código %1$d)</string>
     <string name="err_network">No se puede contactar con el router (%1$s)</string>
