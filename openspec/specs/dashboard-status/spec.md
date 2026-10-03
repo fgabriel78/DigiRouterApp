@@ -32,20 +32,30 @@ The system SHALL display the state and primary SSID of each active wireless radi
 - **THEN** it generates status cards for 2.4 GHz, 5 GHz, and 6 GHz showing the configured primary SSID, whether the radio is enabled or disabled, and band-specific badges.
 
 ### Requirement: Connected Host Discovery and Categorization
-The system SHALL discover local network hosts and determine their online activity status and connection medium.
+The system SHALL discover local network hosts across wireless and wired interfaces and determine their online activity status, link speeds, and connection medium.
 
-#### Scenario: Query host entries from router
+#### Scenario: Refresh network topology and query connected hosts
 - **GIVEN** an authenticated session
-- **WHEN** the devices screen loads
-- **THEN** the system queries `DEV2_HOST_ENTRY` and extracts each client's hostname (falling back to IP), IP address, MAC address, connection interface type, and active status (`active == "1"`).
+- **WHEN** the devices screen loads or the summary screen requests active client count
+- **THEN** the system triggers `ACT_UPDATE_MAPINFO` and queries `DEV2_WIFI_APDEV_ASSOCDEV` (wireless clients) and `DEV2_WIFI_APDEV_ETHASSOCDEV` (wired clients), tolerating partial failure if one query succeeds.
 
-### Requirement: Wireless Client Metrics Correlation
-The system SHALL correlate connected host records with wireless association metrics to show signal strength and data rates.
+#### Scenario: Parse and deduplicate client instances
+- **GIVEN** the raw wireless and wired client instances
+- **WHEN** instances are aggregated into connected devices
+- **THEN** entries are deduplicated by MAC address (active instances take precedence) and client names resolve to `X_TP_HostName`, falling back to IP address, and lastly MAC address.
 
-#### Scenario: Correlate wireless association metrics
-- **GIVEN** a list of hosts and wireless association data from `DEV2_WIFI_APDEV_ASSOCDEV`
-- **WHEN** devices are matched by IP address
+### Requirement: Client Link Metrics
+The system SHALL display physical signal strength for wireless clients and negotiated link speed for wired and wireless clients.
+
+#### Scenario: Wireless signal strength and data rates
+- **GIVEN** a wireless device from `DEV2_WIFI_APDEV_ASSOCDEV`
+- **WHEN** rendering device cards
 - **THEN** wireless clients display a multi-bar signal icon based on `X_TP_SignalStrengthLevel` (1 to 4 bars) and downlink bitrate in Mbit/s derived from `lastDataDownlinkRate`.
+
+#### Scenario: Wired link speed
+- **GIVEN** a wired device from `DEV2_WIFI_APDEV_ETHASSOCDEV`
+- **WHEN** rendering device cards
+- **THEN** wired clients display the negotiated link rate in Mbit/s derived from `linkSpeed`.
 
 ### Requirement: Device Filtering and Sorting
 The system SHALL allow filtering clients by physical medium and online status, displaying active clients first.
