@@ -50,4 +50,12 @@
     <string name="devices_disconnected">Disconnected</string>
     <string name="devices_none">No devices</string>
     <string name="devices_disconnected_cd">Disconnected</string>
+    <string name="mesh_network_title">EasyMesh Network</string>
+    <string name="mesh_role_controller">Main Router</string>
+    <string name="mesh_role_agent">Mesh Satellite</string>
+    <string name="mesh_backhaul_wifi">Wi-Fi</string>
+    <string name="mesh_backhaul_wired">Ethernet</string>
+    <string name="mesh_devices_count">%1$d devices</string>
+    <string name="mesh_filter_all_nodes">All Nodes</string>
+    <string name="mesh_connected_to">Node: %1$s</string>
 </resources>

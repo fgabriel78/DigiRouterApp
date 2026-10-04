@@ -50,4 +50,12 @@
     <string name="devices_disconnected">Desconectados</string>
     <string name="devices_none">Sin dispositivos</string>
     <string name="devices_disconnected_cd">Desconectado</string>
+    <string name="mesh_network_title">Red EasyMesh</string>
+    <string name="mesh_role_controller">Router Principal</string>
+    <string name="mesh_role_agent">Satélite Mesh</string>
+    <string name="mesh_backhaul_wifi">Wi-Fi</string>
+    <string name="mesh_backhaul_wired">Cable Ethernet</string>
+    <string name="mesh_devices_count">%1$d dispositivos</string>
+    <string name="mesh_filter_all_nodes">Todos los nodos</string>
+    <string name="mesh_connected_to">Nodo: %1$s</string>
 </resources>
