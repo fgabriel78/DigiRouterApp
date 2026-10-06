@@ -25,11 +25,22 @@ data class UiState(
     val loggedIn: Boolean = false,
     val otherSessionActive: Boolean = false,
     val error: LoginError? = null,
+    val rememberPassword: Boolean = false,
+    val savedPassword: String = "",
 )
 
 /** Holds the router session for the lifetime of the app process. */
-class RouterViewModel(app: Application) : AndroidViewModel(app) {
-    private val _state = MutableStateFlow(UiState())
+class RouterViewModel @JvmOverloads constructor(
+    app: Application,
+    private val credentialStore: CredentialStore = SecureCredentialStore(app),
+) : AndroidViewModel(app) {
+    private val initialSavedPassword = credentialStore.getSavedPassword() ?: ""
+    private val _state = MutableStateFlow(
+        UiState(
+            rememberPassword = credentialStore.hasSavedPassword(),
+            savedPassword = initialSavedPassword,
+        ),
+    )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     @Volatile
@@ -43,6 +54,15 @@ class RouterViewModel(app: Application) : AndroidViewModel(app) {
     fun setAddress(value: String) = _state.update { it.copy(address = value.trim(), error = null) }
 
     fun setUsername(value: String) = _state.update { it.copy(username = value.trim(), error = null) }
+
+    fun setRememberPassword(value: Boolean) {
+        if (!value) {
+            credentialStore.clear()
+            _state.update { it.copy(rememberPassword = false, savedPassword = "") }
+        } else {
+            _state.update { it.copy(rememberPassword = true) }
+        }
+    }
 
     fun login(password: String) {
         if (_state.value.loggingIn) return
@@ -64,7 +84,19 @@ class RouterViewModel(app: Application) : AndroidViewModel(app) {
             }
             _state.update { s ->
                 result.fold(
-                    onSuccess = { s.copy(loggingIn = false, loggedIn = true, otherSessionActive = it) },
+                    onSuccess = {
+                        if (s.rememberPassword) {
+                            credentialStore.savePassword(password)
+                        } else {
+                            credentialStore.clear()
+                        }
+                        s.copy(
+                            loggingIn = false,
+                            loggedIn = true,
+                            otherSessionActive = it,
+                            savedPassword = if (s.rememberPassword) password else "",
+                        )
+                    },
                     onFailure = { s.copy(loggingIn = false, error = mapLoginError(it)) },
                 )
             }
@@ -88,4 +120,3 @@ internal fun mapLoginError(t: Throwable): LoginError = when {
     t is IOException -> LoginError.Unreachable
     else -> LoginError.Other
 }
-

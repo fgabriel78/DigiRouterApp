@@ -5,6 +5,7 @@
     <string name="login_address">Dirección del router</string>
     <string name="login_username">Usuario</string>
     <string name="login_password">Contraseña de administración</string>
+    <string name="login_remember_password">Recordar contraseña</string>
     <string name="login_button">Iniciar sesión</string>
     <string name="login_busy_warning">Hay otra sesión de administración abierta en el router. Si continúas, se cerrará.</string>
     <string name="login_wrong_password">Contraseña incorrecta</string>

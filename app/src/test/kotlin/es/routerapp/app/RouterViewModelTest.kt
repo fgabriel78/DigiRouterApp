@@ -1,7 +1,11 @@
 package es.routerapp.app
 
+import android.app.Application
 import es.routerapp.protocol.RouterException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 import java.net.UnknownServiceException
@@ -42,5 +46,51 @@ class RouterViewModelTest {
     fun `mapLoginError maps other throwables to Other`() {
         val error = mapLoginError(IllegalStateException("Unexpected state"))
         assertEquals(LoginError.Other, error)
+    }
+
+    @Test
+    fun `initial state loads saved password and rememberPassword from CredentialStore`() {
+        val store = FakeCredentialStore("saved_pass")
+        val vm = RouterViewModel(Application(), store)
+        assertEquals(true, vm.state.value.rememberPassword)
+        assertEquals("saved_pass", vm.state.value.savedPassword)
+    }
+
+    @Test
+    fun `initial state has false rememberPassword when store is empty`() {
+        val store = FakeCredentialStore(null)
+        val vm = RouterViewModel(Application(), store)
+        assertEquals(false, vm.state.value.rememberPassword)
+        assertEquals("", vm.state.value.savedPassword)
+    }
+
+    @Test
+    fun `setRememberPassword false purges store and updates state`() {
+        val store = FakeCredentialStore("saved_pass")
+        val vm = RouterViewModel(Application(), store)
+        vm.setRememberPassword(false)
+        assertEquals(false, vm.state.value.rememberPassword)
+        assertEquals("", vm.state.value.savedPassword)
+        assertFalse(store.hasSavedPassword())
+        assertNull(store.getSavedPassword())
+    }
+
+    @Test
+    fun `setRememberPassword true enables remember flag in state`() {
+        val store = FakeCredentialStore(null)
+        val vm = RouterViewModel(Application(), store)
+        vm.setRememberPassword(true)
+        assertEquals(true, vm.state.value.rememberPassword)
+    }
+
+    @Test
+    fun `logout retains saved credential in store and state`() {
+        val store = FakeCredentialStore("saved_pass")
+        val vm = RouterViewModel(Application(), store)
+        vm.logout()
+        assertEquals(false, vm.state.value.loggedIn)
+        assertEquals(true, vm.state.value.rememberPassword)
+        assertEquals("saved_pass", vm.state.value.savedPassword)
+        assertEquals("saved_pass", store.getSavedPassword())
     }
 }

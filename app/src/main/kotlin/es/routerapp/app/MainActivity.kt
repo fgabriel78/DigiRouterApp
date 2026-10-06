@@ -43,6 +43,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -88,7 +89,7 @@ class MainActivity : ComponentActivity() {
                     label = "session",
                 ) { loggedIn ->
                     if (loggedIn) AppNavigation(vm, state.username)
-                    else LoginScreen(state, vm::setAddress, vm::setUsername, vm::login)
+                    else LoginScreen(state, vm::setAddress, vm::setUsername, vm::setRememberPassword, vm::login)
                 }
             }
         }
@@ -96,8 +97,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LoginScreen(state: UiState, onAddress: (String) -> Unit, onUsername: (String) -> Unit, onLogin: (String) -> Unit) {
-    var password by remember { mutableStateOf("") }
+private fun LoginScreen(
+    state: UiState,
+    onAddress: (String) -> Unit,
+    onUsername: (String) -> Unit,
+    onRememberPassword: (Boolean) -> Unit,
+    onLogin: (String) -> Unit,
+) {
+    var password by remember(state.savedPassword) { mutableStateOf(state.savedPassword) }
     var reveal by remember { mutableStateOf(false) }
     val c = MaterialTheme.colorScheme
     Scaffold { padding ->
@@ -144,6 +151,22 @@ private fun LoginScreen(state: UiState, onAddress: (String) -> Unit, onUsername:
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
             )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onRememberPassword(!state.rememberPassword) },
+            ) {
+                Checkbox(
+                    checked = state.rememberPassword,
+                    onCheckedChange = { onRememberPassword(it) },
+                )
+                Text(
+                    text = stringResource(R.string.login_remember_password),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
             state.error?.let {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Filled.Info, null, tint = c.error)

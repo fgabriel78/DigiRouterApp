@@ -5,6 +5,7 @@
     <string name="login_address">Router address</string>
     <string name="login_username">Username</string>
     <string name="login_password">Administration password</string>
+    <string name="login_remember_password">Remember password</string>
     <string name="login_button">Sign in</string>
     <string name="login_busy_warning">Another administration session is open on the router. Continuing will close it.</string>
     <string name="login_wrong_password">Wrong password</string>
