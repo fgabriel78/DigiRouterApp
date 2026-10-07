@@ -76,4 +76,9 @@
     <string name="speed_test_mbps">Mbps</string>
     <string name="speed_test_ms">ms</string>
     <string name="speed_test_server">Servidor</string>
+    <string name="home_quick_access">Acceso rápido</string>
+    <string name="home_hero_diagnostics">Pulsa para ver diagnóstico completo</string>
+    <string name="home_hero_online">Conectado</string>
+    <string name="home_hero_offline">Desconectado</string>
+    <string name="home_router_model">DIGI XGB430v Pro</string>
 </resources>
