@@ -96,17 +96,27 @@ fun describeError(ctx: Context, e: Throwable): String = when (e) {
 @Composable
 fun errorText(e: Throwable): String = describeError(LocalContext.current, e)
 
-private suspend fun <T> io(block: () -> T): Result<T> = withContext(Dispatchers.IO) { runCatching(block) }
+private suspend fun <T> io(recovery: RecoveryRunner = RecoveryRunner.NoOp, block: () -> T): Result<T> =
+    runCatching {
+        recovery.run {
+            withContext(Dispatchers.IO) { block() }
+        }
+    }
 
 @Composable
-fun GenericPageScreen(page: Page, engine: PageEngine, onBack: () -> Unit) {
+fun GenericPageScreen(
+    page: Page,
+    engine: PageEngine,
+    onBack: () -> Unit,
+    recovery: RecoveryRunner = RecoveryRunner.NoOp,
+) {
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val loaded by produceState<Result<Map<String, List<Instance>>>?>(null, reloadKey) {
         value = null
-        value = io { page.sections.associate { it.id to engine.load(it) } }
+        value = io(recovery) { page.sections.associate { it.id to engine.load(it) } }
     }
     var pendingAction by remember { mutableStateOf<PageAction?>(null) }
 
@@ -123,7 +133,7 @@ fun GenericPageScreen(page: Page, engine: PageEngine, onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     items(page.sections, key = { it.id }) { section ->
-                        SectionView(section, data[section.id].orEmpty(), engine, scope, snack) { reloadKey++ }
+                        SectionView(section, data[section.id].orEmpty(), engine, scope, snack, recovery) { reloadKey++ }
                     }
                     items(page.actions, key = { it.title }) { a ->
                         val c = MaterialTheme.colorScheme
@@ -148,7 +158,7 @@ fun GenericPageScreen(page: Page, engine: PageEngine, onBack: () -> Unit) {
         ConfirmDialog(tr(a.title), tr(a.confirm), danger = a.danger, onDismiss = { pendingAction = null }) {
             pendingAction = null
             scope.launch {
-                val r = io { engine.run(a) }
+                val r = io(recovery) { engine.run(a) }
                 snack.showSnackbar(if (r.isSuccess) ctx.getString(R.string.order_sent) else describeError(ctx, r.exceptionOrNull()!!))
             }
         }
@@ -222,6 +232,7 @@ private fun SectionView(
     engine: PageEngine,
     scope: CoroutineScope,
     snack: SnackbarHostState,
+    recovery: RecoveryRunner,
     reload: () -> Unit,
 ) {
     var showAdd by remember { mutableStateOf(false) }
@@ -232,7 +243,7 @@ private fun SectionView(
         section.note?.let { Text(tr(it), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 8.dp)) }
         val shown = if (section.applyToAll) instances.take(1) else instances
         if (shown.isEmpty()) EmptyHint()
-        shown.forEach { inst -> InstanceCard(section, inst, instances, engine, scope, snack, reload) }
+        shown.forEach { inst -> InstanceCard(section, inst, instances, engine, scope, snack, recovery, reload) }
         if (section.add != null) {
             FilledTonalButton(onClick = { showAdd = true }, shapes = ButtonDefaults.shapes(), modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Add, null, Modifier.size(ButtonDefaults.IconSize))
@@ -244,7 +255,7 @@ private fun SectionView(
         AddDialog(section, onDismiss = { showAdd = false }) { values ->
             showAdd = false
             scope.launch {
-                val r = io { engine.add(section, values) }
+                val r = io(recovery) { engine.add(section, values) }
                 snack.showSnackbar(if (r.isSuccess) ctx.getString(R.string.added) else describeError(ctx, r.exceptionOrNull()!!))
                 reload()
             }
@@ -260,6 +271,7 @@ private fun InstanceCard(
     engine: PageEngine,
     scope: CoroutineScope,
     snack: SnackbarHostState,
+    recovery: RecoveryRunner,
     reload: () -> Unit,
 ) {
     val edits = remember(inst) { mutableStateMapOf<String, String>().apply { putAll(inst.values) } }
@@ -297,7 +309,7 @@ private fun InstanceCard(
                             shapes = ButtonDefaults.shapes(),
                             onClick = {
                                 if (section.saveWarning != null) confirmSave = true
-                                else doSave(ctx, section, inst, all, edits, engine, scope, snack, reload) { busy = it }
+                                else doSave(ctx, section, inst, all, edits, engine, scope, snack, recovery, reload) { busy = it }
                             },
                         ) {
                             Icon(Icons.Filled.Check, null, Modifier.size(ButtonDefaults.IconSize))
@@ -323,7 +335,7 @@ private fun InstanceCard(
     if (confirmSave) {
         ConfirmDialog(stringResource(R.string.confirm_changes), tr(section.saveWarning.orEmpty()), onDismiss = { confirmSave = false }) {
             confirmSave = false
-            doSave(ctx, section, inst, all, edits, engine, scope, snack, reload) { busy = it }
+            doSave(ctx, section, inst, all, edits, engine, scope, snack, recovery, reload) { busy = it }
         }
     }
     if (confirmDelete) {
@@ -331,7 +343,7 @@ private fun InstanceCard(
             confirmDelete = false
             scope.launch {
                 busy = true
-                val r = io { engine.delete(section, inst) }
+                val r = io(recovery) { engine.delete(section, inst) }
                 snack.showSnackbar(if (r.isSuccess) ctx.getString(R.string.deleted) else describeError(ctx, r.exceptionOrNull()!!))
                 busy = false
                 reload()
@@ -349,13 +361,14 @@ private fun doSave(
     engine: PageEngine,
     scope: CoroutineScope,
     snack: SnackbarHostState,
+    recovery: RecoveryRunner,
     reload: () -> Unit,
     setBusy: (Boolean) -> Unit,
 ) {
     val edited = edits.toMap()
     scope.launch {
         setBusy(true)
-        val r = io { engine.save(section, inst, edited, all) }
+        val r = io(recovery) { engine.save(section, inst, edited, all) }
         snack.showSnackbar(
             r.fold(
                 onSuccess = { if (it.isEmpty()) ctx.getString(R.string.no_changes) else ctx.getString(R.string.saved) },

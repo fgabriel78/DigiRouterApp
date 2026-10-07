@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.UnknownServiceException
 
-enum class LoginError { WrongPassword, Unreachable, CleartextRestricted, Other }
+enum class LoginError { WrongPassword, Unreachable, CleartextRestricted, SessionExpired, Other }
 
 data class UiState(
     val address: String = "192.168.1.1",
@@ -29,11 +31,20 @@ data class UiState(
     val savedPassword: String = "",
 )
 
+interface RecoveryRunner {
+    suspend fun <T> run(block: suspend () -> T): T
+
+    object NoOp : RecoveryRunner {
+        override suspend fun <T> run(block: suspend () -> T): T = block()
+    }
+}
+
 /** Holds the router session for the lifetime of the app process. */
 class RouterViewModel @JvmOverloads constructor(
     app: Application,
     private val credentialStore: CredentialStore = SecureCredentialStore(app),
-) : AndroidViewModel(app) {
+) : AndroidViewModel(app), RecoveryRunner {
+    override suspend fun <T> run(block: suspend () -> T): T = executeWithRecovery(block)
     private val initialSavedPassword = credentialStore.getSavedPassword() ?: ""
     private val _state = MutableStateFlow(
         UiState(
@@ -44,12 +55,21 @@ class RouterViewModel @JvmOverloads constructor(
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     @Volatile
+    private var activePassword: String? = null
+
+    private val recoveryMutex = Mutex()
+
+    @Volatile
     var client: RouterClient? = null
         private set
 
     @Volatile
     var engine: PageEngine? = null
         private set
+
+    fun evictIdleConnections() {
+        client?.evictIdleConnections()
+    }
 
     fun setAddress(value: String) = _state.update { it.copy(address = value.trim(), error = null) }
 
@@ -79,6 +99,7 @@ class RouterViewModel @JvmOverloads constructor(
                     c.login(password, _state.value.username)
                     client = c
                     engine = PageEngine(c)
+                    activePassword = password
                     busy.isLogined
                 }
             }
@@ -103,8 +124,67 @@ class RouterViewModel @JvmOverloads constructor(
         }
     }
 
+    suspend fun <T> executeWithRecovery(block: suspend () -> T): T {
+        return try {
+            block()
+        } catch (t: Throwable) {
+            val c = client
+            val pass = activePassword
+            if (c != null && pass != null && c.isSessionOrStreamFailure(t)) {
+                recoveryMutex.withLock {
+                    // If another concurrent call already refreshed the session successfully,
+                    // retry block() immediately.
+                    val quickRetry = runCatching { block() }
+                    if (quickRetry.isSuccess) {
+                        return quickRetry.getOrThrow()
+                    }
+
+                    // Otherwise, purge idle sockets and re-authenticate
+                    c.evictIdleConnections()
+                    val reauthResult = runCatching {
+                        withContext(Dispatchers.IO) {
+                            c.login(pass, _state.value.username)
+                        }
+                    }
+                    if (reauthResult.isSuccess) {
+                        try {
+                            return block()
+                        } catch (retryErr: Throwable) {
+                            if (c.isSessionOrStreamFailure(retryErr)) {
+                                handleSessionExpired(retryErr)
+                            }
+                            throw retryErr
+                        }
+                    } else {
+                        val reauthErr = reauthResult.exceptionOrNull() ?: t
+                        handleSessionExpired(reauthErr)
+                        throw reauthErr
+                    }
+                }
+            } else if (c != null && c.isSessionOrStreamFailure(t)) {
+                handleSessionExpired(t)
+                throw t
+            } else {
+                throw t
+            }
+        }
+    }
+
+    private fun handleSessionExpired(cause: Throwable) {
+        activePassword = null
+        client = null
+        engine = null
+        _state.update {
+            it.copy(
+                loggedIn = false,
+                error = LoginError.SessionExpired,
+            )
+        }
+    }
+
     fun logout() {
         val c = client ?: return
+        activePassword = null
         client = null
         engine = null
         _state.update { it.copy(loggedIn = false) }
@@ -113,6 +193,7 @@ class RouterViewModel @JvmOverloads constructor(
 }
 
 internal fun mapLoginError(t: Throwable): LoginError = when {
+    RouterClient.isSessionOrStreamFailure(t) -> LoginError.SessionExpired
     t is SecurityException -> LoginError.CleartextRestricted
     t is UnknownServiceException -> LoginError.CleartextRestricted
     t.message?.contains("CLEARTEXT", ignoreCase = true) == true -> LoginError.CleartextRestricted

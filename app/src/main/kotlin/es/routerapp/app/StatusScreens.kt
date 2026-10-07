@@ -101,29 +101,35 @@ private fun bandName(b: String?): String = when {
 }
 
 @Composable
-fun DashboardScreen(engine: PageEngine, onBack: () -> Unit) {
+fun DashboardScreen(
+    engine: PageEngine,
+    onBack: () -> Unit,
+    recovery: RecoveryRunner = RecoveryRunner.NoOp,
+) {
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
     val data by produceState<Result<DashboardData>?>(null, reloadKey) {
         value = null
-        value = withContext(Dispatchers.IO) {
-            runCatching {
-                val c = engine.client
-                fun one(oid: String): Map<String, String> = PageEngine.toInstances(c.get(oid)).firstOrNull()?.values.orEmpty()
-                // Optional data: a failure here must not hide the rest of the dashboard.
-                fun first(oid: String): Map<String, String> =
-                    runCatching { PageEngine.toInstances(c.getList(oid)).firstOrNull()?.values.orEmpty() }.getOrDefault(emptyMap())
-                val connData = runCatching { ConnectedDevices.loadData(c) }.getOrNull()
-                val wans = PageEngine.toInstances(c.getList("DEV2_ADT_WAN")).map { it.values }
-                val active = engine.activeWanName()
-                DashboardData(
-                    info = one("DEV2_DEV_INFO"),
-                    wan = wans.firstOrNull { it["name"] == active },
-                    gpon = first("DEV2_GPON_INTF_STATS"),
-                    hosts = connData?.devices?.count { it.active } ?: 0,
-                    wifi = PageEngine.toInstances(c.getList("DEV2_ADT_WIFI_COMMON")).map { it.values },
-                    meshNodes = connData?.nodes.orEmpty(),
-                )
+        value = runCatching {
+            recovery.run {
+                withContext(Dispatchers.IO) {
+                    val c = engine.client
+                    fun one(oid: String): Map<String, String> = PageEngine.toInstances(c.get(oid)).firstOrNull()?.values.orEmpty()
+                    // Optional data: a failure here must not hide the rest of the dashboard.
+                    fun first(oid: String): Map<String, String> =
+                        runCatching { PageEngine.toInstances(c.getList(oid)).firstOrNull()?.values.orEmpty() }.getOrDefault(emptyMap())
+                    val connData = runCatching { ConnectedDevices.loadData(c) }.getOrNull()
+                    val wans = PageEngine.toInstances(c.getList("DEV2_ADT_WAN")).map { it.values }
+                    val active = engine.activeWanName()
+                    DashboardData(
+                        info = one("DEV2_DEV_INFO"),
+                        wan = wans.firstOrNull { it["name"] == active },
+                        gpon = first("DEV2_GPON_INTF_STATS"),
+                        hosts = connData?.devices?.count { it.active } ?: 0,
+                        wifi = PageEngine.toInstances(c.getList("DEV2_ADT_WIFI_COMMON")).map { it.values },
+                        meshNodes = connData?.nodes.orEmpty(),
+                    )
+                }
             }
         }
     }
@@ -322,13 +328,21 @@ private fun signalIcon(level: Int?): ImageVector = when {
 }
 
 @Composable
-fun DevicesScreen(engine: PageEngine, onBack: () -> Unit) {
+fun DevicesScreen(
+    engine: PageEngine,
+    onBack: () -> Unit,
+    recovery: RecoveryRunner = RecoveryRunner.NoOp,
+) {
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
     val data by produceState<Result<ConnectedDevicesData>?>(null, reloadKey) {
         value = null
-        value = withContext(Dispatchers.IO) {
-            runCatching { ConnectedDevices.loadData(engine.client) }
+        value = runCatching {
+            recovery.run {
+                withContext(Dispatchers.IO) {
+                    ConnectedDevices.loadData(engine.client)
+                }
+            }
         }
     }
     var filter by rememberSaveable { mutableStateOf(DeviceFilter.ALL) }

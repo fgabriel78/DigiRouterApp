@@ -94,6 +94,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        vm.evictIdleConnections()
+    }
 }
 
 @Composable
@@ -173,6 +178,7 @@ private fun LoginScreen(
                     val errorRes = when (it) {
                         LoginError.WrongPassword -> R.string.login_wrong_password
                         LoginError.CleartextRestricted -> R.string.login_cleartext_restricted
+                        LoginError.SessionExpired -> R.string.login_session_expired
                         LoginError.Unreachable, LoginError.Other -> R.string.login_unreachable
                     }
                     Text(
@@ -219,10 +225,10 @@ private fun AppNavigation(vm: RouterViewModel, username: String) {
         val page = id?.let { Catalog.byId(it) }
         when {
             page == null -> HomeScreen(username, onOpen = { pageId = it.id }, onLogout = vm::logout)
-            page.id == "dashboard" -> DashboardScreen(engine) { pageId = null }
-            page.id == "devices" -> DevicesScreen(engine) { pageId = null }
+            page.id == "dashboard" -> DashboardScreen(engine, onBack = { pageId = null }, recovery = vm)
+            page.id == "devices" -> DevicesScreen(engine, onBack = { pageId = null }, recovery = vm)
             page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })
-            else -> GenericPageScreen(page, engine) { pageId = null }
+            else -> GenericPageScreen(page, engine, onBack = { pageId = null }, recovery = vm)
         }
     }
 }

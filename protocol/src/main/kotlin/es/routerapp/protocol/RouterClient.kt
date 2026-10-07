@@ -1,5 +1,6 @@
 package es.routerapp.protocol
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -11,6 +12,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import okhttp3.ConnectionPool
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -18,7 +20,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.EOFException
 import java.io.IOException
+import java.net.SocketException
 import java.util.concurrent.TimeUnit
 
 /** Error returned by the router (non-zero `errorcode` / `$.ret`). */
@@ -46,6 +50,11 @@ class RouterClient(
 
     private val cookieStore = mutableMapOf<String, Cookie>()
     private val http: OkHttpClient = (httpClient ?: OkHttpClient()).newBuilder()
+        .apply {
+            if (httpClient == null) {
+                connectionPool(ConnectionPool(5, 15, TimeUnit.SECONDS))
+            }
+        }
         .connectTimeout(8, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .cookieJar(object : CookieJar {
@@ -58,6 +67,17 @@ class RouterClient(
             override fun loadForRequest(url: HttpUrl): List<Cookie> = synchronized(cookieStore) { cookieStore.values.toList() }
         })
         .build()
+
+    /** Evicts all idle pooled TCP connections to prevent sending requests into dead router sockets. */
+    fun evictIdleConnections() {
+        http.connectionPool.evictAll()
+    }
+
+    /**
+     * Checks whether an error is caused by a severed TCP transport stream,
+     * an expired router session, or a cleartext redirect due to router timeout.
+     */
+    fun isSessionOrStreamFailure(t: Throwable): Boolean = Companion.isSessionOrStreamFailure(t)
 
     private var crypto: GdprCrypto? = null
 
@@ -183,7 +203,12 @@ class RouterClient(
     /** `cgi`: legacy script-style operation, returns `$.ret`. */
     fun cgi(oid: String, attrs: Map<String, String> = emptyMap()): Int {
         val payload = envelope("cgi", oid, attrs, DEFAULT_STACK)
-        return parseCgiRet(postEncrypted(payload, isLogin = false))
+        val reply = postEncrypted(payload, isLogin = false)
+        val trimmed = reply.trim()
+        if (trimmed.startsWith("<") || trimmed.contains("location.href") || trimmed.contains("/cgi/login")) {
+            throw RouterException(-1, "Session expired: router returned cleartext redirect response")
+        }
+        return parseCgiRet(reply)
     }
 
     private fun envelope(operation: String, oid: String, attrs: Map<String, String>, stack: String, pstack: String = DEFAULT_STACK): String =
@@ -199,7 +224,11 @@ class RouterClient(
 
     private fun dm(operation: String, oid: String, attrs: Map<String, String>, stack: String, pstack: String = DEFAULT_STACK): JsonElement {
         val reply = postEncrypted(envelope(operation, oid, attrs, stack, pstack), isLogin = false)
-        val json = Json.parseToJsonElement(reply.trim())
+        val trimmed = reply.trim()
+        if (trimmed.startsWith("<") || trimmed.contains("location.href") || trimmed.contains("/cgi/login")) {
+            throw RouterException(-1, "Session expired: router returned cleartext redirect response")
+        }
+        val json = Json.parseToJsonElement(trimmed)
         val obj = json.jsonObject
         val success = obj["success"]?.jsonPrimitive?.boolean ?: false
         if (!success) {
@@ -241,5 +270,53 @@ class RouterClient(
             Regex("""tokenid\s*[:=]\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE),
             Regex("""var\s+token\s*=\s*["']([^"']+)["']"""),
         )
+
+        /**
+         * Checks whether an error is caused by a severed TCP transport stream,
+         * an expired router session, or a cleartext redirect due to router timeout.
+         */
+        fun isSessionOrStreamFailure(t: Throwable): Boolean {
+            var curr: Throwable? = t
+            while (curr != null) {
+                if (curr is RouterException) {
+                    if (curr.code == -1 || curr.code in 71000..71010 || curr.code == 71234) return true
+                    val msg = curr.message?.lowercase().orEmpty()
+                    if (msg.contains("session") || msg.contains("timeout") || msg.contains("redirect") || msg.contains("<html")) {
+                        return true
+                    }
+                }
+                if (curr is EOFException) return true
+                if (curr is SocketException) return true
+                if (curr is IOException) {
+                    val msg = curr.message?.lowercase().orEmpty()
+                    if (msg.contains("unexpected end of stream") ||
+                        msg.contains("connection reset") ||
+                        msg.contains("broken pipe") ||
+                        msg.contains("software caused connection abort") ||
+                        msg.contains("stream reset") ||
+                        msg.contains("socket closed")
+                    ) {
+                        return true
+                    }
+                }
+                if (curr is SerializationException || curr is IllegalArgumentException) {
+                    val msg = curr.message?.lowercase().orEmpty()
+                    if (msg.contains("expected start of the object") ||
+                        msg.contains("unexpected symbol") ||
+                        msg.contains("<html") ||
+                        msg.contains("location") ||
+                        msg.contains("redirect")
+                    ) {
+                        return true
+                    }
+                }
+                if (curr is IllegalStateException) {
+                    val msg = curr.message?.lowercase().orEmpty()
+                    if (msg.contains("not logged in") || msg.contains("session")) return true
+                }
+                curr = curr.cause
+            }
+            return false
+        }
     }
 }

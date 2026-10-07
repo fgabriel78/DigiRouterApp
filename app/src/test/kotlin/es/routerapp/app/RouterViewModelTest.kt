@@ -37,6 +37,24 @@ class RouterViewModelTest {
     }
 
     @Test
+    fun `mapLoginError maps unexpected end of stream to SessionExpired`() {
+        val error = mapLoginError(IOException("unexpected end of stream on http://192.168.1.1/cgi_gdpr?9"))
+        assertEquals(LoginError.SessionExpired, error)
+    }
+
+    @Test
+    fun `mapLoginError maps session timeout RouterException to SessionExpired`() {
+        val error = mapLoginError(RouterException(-1, "Session expired"))
+        assertEquals(LoginError.SessionExpired, error)
+    }
+
+    @Test
+    fun `mapLoginError maps SocketException to SessionExpired`() {
+        val error = mapLoginError(java.net.SocketException("Connection reset"))
+        assertEquals(LoginError.SessionExpired, error)
+    }
+
+    @Test
     fun `mapLoginError maps generic IOException to Unreachable`() {
         val error = mapLoginError(IOException("Failed to connect to /192.168.1.1:80"))
         assertEquals(LoginError.Unreachable, error)
