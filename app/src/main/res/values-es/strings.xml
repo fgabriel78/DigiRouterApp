@@ -59,4 +59,20 @@
     <string name="mesh_devices_count">%1$d dispositivos</string>
     <string name="mesh_filter_all_nodes">Todos los nodos</string>
     <string name="mesh_connected_to">Nodo: %1$s</string>
+    <string name="speed_test_title">Test de velocidad</string>
+    <string name="speed_test_start">Iniciar test</string>
+    <string name="speed_test_stop">Detener</string>
+    <string name="speed_test_ping">Ping</string>
+    <string name="speed_test_jitter">Jitter</string>
+    <string name="speed_test_download">Descarga</string>
+    <string name="speed_test_upload">Subida</string>
+    <string name="speed_test_idle_desc">Mide la velocidad de descarga y subida Wi-Fi directamente desde tu conexión de red.</string>
+    <string name="speed_test_running_ping">Midiendo latencia...</string>
+    <string name="speed_test_running_download">Midiendo velocidad de descarga...</string>
+    <string name="speed_test_running_upload">Midiendo velocidad de subida...</string>
+    <string name="speed_test_completed">Test completado</string>
+    <string name="speed_test_last_result">Último resultado</string>
+    <string name="speed_test_mbps">Mbps</string>
+    <string name="speed_test_ms">ms</string>
+    <string name="speed_test_server">Servidor</string>
 </resources>

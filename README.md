@@ -13,7 +13,7 @@ With the router's `user` account (the only one the operator hands out to custome
 
 | Group | Screens |
 |---|---|
-| **Status** | Summary (Internet status, public IP, uptime, traffic, Wi-Fi networks) · Connected devices (filters: active, Wi-Fi, cable, disconnected) |
+| **Status** | Summary (Internet status, public IP, uptime, traffic, Wi-Fi networks) · Connected devices (filters: active, Wi-Fi, cable, disconnected) · Speed test (Wi-Fi download, upload, ping, and jitter benchmark) |
 | **Wi-Fi** | Main network (SSID, password, security) and Wi-Fi 7 MLO · Radio settings (mode, channel width, channel, power) · Advanced Wi-Fi (beamforming, MU-MIMO, OFDMA, TWT…, band steering) · WPS · Guest network · Additional networks (multi-SSID) |
 | **Local network** | LAN and DHCP server · DHCP reservations · Dynamic DNS (DynDNS, No-IP) |
 | **Ports and NAT** | Virtual servers (port forwarding) · Port triggering · DMZ · UPnP · ALG |

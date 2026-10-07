@@ -3,3 +3,6 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+
+# AndroidX Security / Tink compile-only annotations
+-dontwarn com.google.errorprone.annotations.**

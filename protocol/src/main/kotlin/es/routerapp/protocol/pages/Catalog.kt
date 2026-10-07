@@ -525,9 +525,11 @@ object Catalog {
         description = "Router, Internet and Wi-Fi status", custom = true)
     private val devices = Page(id = "devices", title = "Connected devices", group = Group.STATUS,
         description = "Wired and Wi-Fi clients", custom = true)
+    private val speedtest = Page(id = "speedtest", title = "Speed test", group = Group.STATUS,
+        description = "Test Wi-Fi download, upload, and latency", custom = true)
 
     val pages: List<Page> = listOf(
-        dashboard, devices,
+        dashboard, devices, speedtest,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
         lan, dhcpReservations, ddns,
         virtualServers, portTrigger, dmz, upnp, alg,

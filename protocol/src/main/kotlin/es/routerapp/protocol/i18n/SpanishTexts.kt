@@ -53,6 +53,8 @@ object SpanishTexts {
         "Router, Internet and Wi-Fi status" to "Estado del router, Internet y Wi-Fi",
         "Connected devices" to "Dispositivos conectados",
         "Wired and Wi-Fi clients" to "Clientes por cable y Wi-Fi",
+        "Speed test" to "Test de velocidad",
+        "Test Wi-Fi download, upload, and latency" to "Mide velocidad de descarga, subida y latencia Wi-Fi",
 
         // Wi-Fi
         "Main Wi-Fi" to "Wi-Fi principal",

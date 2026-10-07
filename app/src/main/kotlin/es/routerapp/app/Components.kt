@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Tune
@@ -86,6 +87,7 @@ fun pageIcon(id: String): ImageVector = when (id) {
     "led" -> Icons.Filled.Lightbulb
     "reboot" -> Icons.Filled.RestartAlt
     "stats" -> Icons.Filled.BarChart
+    "speedtest" -> Icons.Filled.Speed
     else -> Icons.Filled.Router
 }
 

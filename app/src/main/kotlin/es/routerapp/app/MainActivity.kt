@@ -221,6 +221,7 @@ private fun AppNavigation(vm: RouterViewModel, username: String) {
             page == null -> HomeScreen(username, onOpen = { pageId = it.id }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(engine) { pageId = null }
             page.id == "devices" -> DevicesScreen(engine) { pageId = null }
+            page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })
             else -> GenericPageScreen(page, engine) { pageId = null }
         }
     }
