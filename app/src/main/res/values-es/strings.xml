@@ -43,6 +43,10 @@
     <string name="dash_offline">Sin conexión</string>
     <string name="dash_public_ip">IP pública · %1$s</string>
     <string name="wifi_disabled">Desactivada</string>
+    <string name="wifi_type_primary">Wi-Fi principal</string>
+    <string name="wifi_type_guest">Red de invitados</string>
+    <string name="wifi_type_additional">Red adicional %1$d</string>
+    <string name="wifi_all_disabled">Wi-Fi desactivado</string>
     <string name="band_2_4">2,4 GHz</string>
     <string name="band_5">5 GHz</string>
     <string name="band_6">6 GHz</string>

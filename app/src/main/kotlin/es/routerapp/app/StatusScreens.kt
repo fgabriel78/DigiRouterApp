@@ -24,7 +24,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Lan
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material.icons.filled.NetworkWifi1Bar
 import androidx.compose.material.icons.filled.NetworkWifi2Bar
@@ -145,6 +147,7 @@ fun DashboardScreen(
                 val d = res.getOrThrow()
                 val online = d.wan?.get("connStatusV4") == "Connected"
                 val c = MaterialTheme.colorScheme
+                val consolidatedWifi = remember(d.wifi) { consolidateWifiNetworks(d.wifi) }
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
@@ -291,22 +294,78 @@ fun DashboardScreen(
                             }
                         }
                     }
-                    gridItems(d.wifi, span = { GridItemSpan(2) }) { w ->
-                        val on = w["primaryEnable"] == "1"
-                        Card(
-                            Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = CardDefaults.cardColors(containerColor = c.surfaceContainerHigh),
-                        ) {
-                            Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                ShapeBadge(
-                                    if (on) Icons.Filled.Wifi else Icons.Filled.WifiOff,
-                                    if (on) c.tertiaryContainer else c.surfaceContainerHighest,
-                                    if (on) c.onTertiaryContainer else c.onSurfaceVariant, 52.dp, 2,
-                                )
-                                Column(Modifier.weight(1f)) {
-                                    Text(if (on) w["primarySSID"].orEmpty() else stringResource(R.string.wifi_disabled), style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                                    Text(bandName(w["band"]), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                    if (consolidatedWifi.isEmpty()) {
+                        item(span = { GridItemSpan(2) }) {
+                            Card(
+                                Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = CardDefaults.cardColors(containerColor = c.surfaceContainerHigh),
+                            ) {
+                                Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    ShapeBadge(
+                                        Icons.Filled.WifiOff,
+                                        c.surfaceContainerHighest,
+                                        c.onSurfaceVariant,
+                                        52.dp,
+                                        2,
+                                    )
+                                    Column(Modifier.weight(1f)) {
+                                        Text(stringResource(R.string.wifi_all_disabled), style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                                        Text(stringResource(R.string.wifi_disabled), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        gridItems(consolidatedWifi, span = { GridItemSpan(2) }) { net ->
+                            val on = net.enabled
+                            val icon = when {
+                                !on -> Icons.Filled.WifiOff
+                                net.category == WifiNetworkCategory.PRIMARY -> Icons.Filled.Wifi
+                                net.category == WifiNetworkCategory.GUEST -> Icons.Filled.Group
+                                net.category == WifiNetworkCategory.ADDITIONAL -> Icons.Filled.Layers
+                                else -> Icons.Filled.Wifi
+                            }
+                            val (containerColor, contentColor) = when {
+                                !on -> c.surfaceContainerHighest to c.onSurfaceVariant
+                                net.category == WifiNetworkCategory.PRIMARY -> c.tertiaryContainer to c.onTertiaryContainer
+                                net.category == WifiNetworkCategory.GUEST -> c.secondaryContainer to c.onSecondaryContainer
+                                net.category == WifiNetworkCategory.ADDITIONAL -> c.primaryContainer to c.onPrimaryContainer
+                                else -> c.tertiaryContainer to c.onTertiaryContainer
+                            }
+                            val shapeIdx = when (net.category) {
+                                WifiNetworkCategory.PRIMARY -> 2
+                                WifiNetworkCategory.GUEST -> 3
+                                WifiNetworkCategory.ADDITIONAL -> 5
+                            }
+                            val typeLabel = when (net.category) {
+                                WifiNetworkCategory.PRIMARY -> stringResource(R.string.wifi_type_primary)
+                                WifiNetworkCategory.GUEST -> stringResource(R.string.wifi_type_guest)
+                                WifiNetworkCategory.ADDITIONAL -> stringResource(R.string.wifi_type_additional, net.additionalIndex ?: 1)
+                            }
+                            val titleText = if (on) net.ssid else typeLabel
+                            val subtitleText = if (on) {
+                                val formattedBands = net.bands.map { bandName(it) }
+                                if (formattedBands.isNotEmpty()) {
+                                    "$typeLabel · ${formattedBands.joinToString(" · ")}"
+                                } else {
+                                    typeLabel
+                                }
+                            } else {
+                                stringResource(R.string.wifi_disabled)
+                            }
+
+                            Card(
+                                Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = CardDefaults.cardColors(containerColor = c.surfaceContainerHigh),
+                            ) {
+                                Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    ShapeBadge(icon, containerColor, contentColor, 52.dp, shapeIdx)
+                                    Column(Modifier.weight(1f)) {
+                                        Text(titleText, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(subtitleText, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
                                 }
                             }
                         }
