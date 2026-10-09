@@ -33,19 +33,27 @@ import androidx.compose.material.icons.filled.NetworkWifi2Bar
 import androidx.compose.material.icons.filled.NetworkWifi3Bar
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SignalWifi4Bar
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import es.routerapp.protocol.security.HealthRating
+import es.routerapp.protocol.security.SecurityAuditEngine
+import es.routerapp.protocol.security.SecurityReport
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -63,6 +71,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import es.routerapp.protocol.pages.ConnectedDevice
@@ -81,6 +90,7 @@ private class DashboardData(
     val hosts: Int,
     val wifi: List<Map<String, String>>,
     val meshNodes: List<MeshNode> = emptyList(),
+    val securityReport: SecurityReport? = null,
 )
 
 private fun fmtUptime(seconds: Long): String {
@@ -110,6 +120,7 @@ fun DashboardScreen(
     engine: PageEngine,
     onBack: () -> Unit,
     recovery: RecoveryRunner = RecoveryRunner.NoOp,
+    onNavigateToSecurity: () -> Unit = {},
 ) {
     var reloadKey by remember { mutableIntStateOf(0) }
     var inspectingWifi by remember { mutableStateOf<ConsolidatedWifiNetwork?>(null) }
@@ -127,6 +138,7 @@ fun DashboardScreen(
                     val connData = runCatching { ConnectedDevices.loadData(c) }.getOrNull()
                     val wans = PageEngine.toInstances(c.getList("DEV2_ADT_WAN")).map { it.values }
                     val active = engine.activeWanName()
+                    val sec = runCatching { SecurityAuditEngine.audit(c) }.getOrNull()
                     DashboardData(
                         info = one("DEV2_DEV_INFO"),
                         wan = wans.firstOrNull { it["name"] == active },
@@ -134,6 +146,7 @@ fun DashboardScreen(
                         hosts = connData?.devices?.count { it.active } ?: 0,
                         wifi = PageEngine.toInstances(c.getList("DEV2_ADT_WIFI_COMMON")).map { it.values },
                         meshNodes = connData?.nodes.orEmpty(),
+                        securityReport = sec,
                     )
                 }
             }
@@ -186,6 +199,59 @@ fun DashboardScreen(
                             }
                         }
                     }
+                    val sec = d.securityReport
+                    if (sec != null && sec.criticalCount > 0) {
+                        item(span = { GridItemSpan(2) }) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = c.errorContainer,
+                                    contentColor = c.onErrorContainer,
+                                ),
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        ShapeBadge(Icons.Filled.Warning, c.error, c.onError, 48.dp, 1)
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.security_dashboard_banner_title),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.security_dashboard_banner_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = c.onErrorContainer,
+                                            )
+                                        }
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Button(
+                                            onClick = onNavigateToSecurity,
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = c.error,
+                                                contentColor = c.onError,
+                                            ),
+                                        ) {
+                                            Text(stringResource(R.string.security_dashboard_banner_fix))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     item { StatTile(Icons.Filled.Devices, d.hosts.toString(), stringResource(R.string.dash_devices), groupPalette(Group.WIFI), shapeIndex = 1) }
                     item {
                         StatTile(Icons.Filled.Schedule, d.info["upTime"]?.toLongOrNull()?.let(::fmtUptime) ?: "—", stringResource(R.string.dash_uptime),
@@ -213,6 +279,56 @@ fun DashboardScreen(
                                         Text(stringResource(R.string.dash_public_ip, w["connType"].orEmpty()), style = MaterialTheme.typography.bodySmall,
                                             color = c.onSurfaceVariant)
                                     }
+                                }
+                            }
+                        }
+                    }
+                    if (sec != null) {
+                        item(span = { GridItemSpan(2) }) {
+                            Card(
+                                onClick = onNavigateToSecurity,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = CardDefaults.cardColors(containerColor = c.surfaceContainerHigh),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(20.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                ) {
+                                    val badgeColor = when (sec.rating) {
+                                        HealthRating.EXCELLENT -> c.primaryContainer
+                                        HealthRating.GOOD -> c.tertiaryContainer
+                                        HealthRating.POOR -> c.errorContainer
+                                    }
+                                    val badgeContent = when (sec.rating) {
+                                        HealthRating.EXCELLENT -> c.onPrimaryContainer
+                                        HealthRating.GOOD -> c.onTertiaryContainer
+                                        HealthRating.POOR -> c.onErrorContainer
+                                    }
+                                    ShapeBadge(Icons.Filled.Shield, badgeColor, badgeContent, 52.dp, 3)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.security_dashboard_card_title) + " (${sec.score}/100)",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        val subtitle = if (sec.criticalCount > 0 || sec.warningCount > 0) {
+                                            stringResource(R.string.security_dashboard_card_issues, sec.criticalCount + sec.warningCount)
+                                        } else {
+                                            stringResource(R.string.security_dashboard_card_clean)
+                                        }
+                                        Text(
+                                            text = subtitle,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = c.onSurfaceVariant,
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Filled.ChevronRight,
+                                        contentDescription = null,
+                                        tint = c.onSurfaceVariant,
+                                    )
                                 }
                             }
                         }

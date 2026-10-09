@@ -253,8 +253,18 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
     ) { id ->
         val page = id?.let { Catalog.byId(it) }
         when {
+            id == "security-health" || page?.id == "security-health" -> SecurityHealthScreen(
+                viewModel = SecurityHealthViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
+                onBack = { pageId = null },
+                onNavigateToPage = { pageId = it },
+            )
             page == null -> HomeScreen(username, routerAddress, onOpen = { pageId = it.id }, onLogout = vm::logout)
-            page.id == "dashboard" -> DashboardScreen(engine, onBack = { pageId = null }, recovery = vm)
+            page.id == "dashboard" -> DashboardScreen(
+                engine = engine,
+                onBack = { pageId = null },
+                recovery = vm,
+                onNavigateToSecurity = { pageId = "security-health" },
+            )
             page.id == "devices" -> DevicesScreen(engine, onBack = { pageId = null }, recovery = vm)
             page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })
             else -> GenericPageScreen(page, engine, onBack = { pageId = null }, recovery = vm)

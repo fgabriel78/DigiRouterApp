@@ -527,13 +527,15 @@ object Catalog {
         description = "Wired and Wi-Fi clients", custom = true)
     private val speedtest = Page(id = "speedtest", title = "Speed test", group = Group.STATUS,
         description = "Test Wi-Fi download, upload, and latency", custom = true)
+    private val securityHealth = Page(id = "security-health", title = "Network Security", group = Group.SECURITY,
+        description = "Security score, posture audit and 1-tap fixes", custom = true)
 
     val pages: List<Page> = listOf(
         dashboard, devices, speedtest,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
         lan, dhcpReservations, ddns,
         virtualServers, portTrigger, dmz, upnp, alg,
-        security, arp,
+        securityHealth, security, arp,
         storage,
         time, led, reboot, stats,
     )

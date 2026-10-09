@@ -55,6 +55,8 @@ object SpanishTexts {
         "Wired and Wi-Fi clients" to "Clientes por cable y Wi-Fi",
         "Speed test" to "Test de velocidad",
         "Test Wi-Fi download, upload, and latency" to "Mide velocidad de descarga, subida y latencia Wi-Fi",
+        "Network Security" to "Seguridad de la red",
+        "Security score, posture audit and 1-tap fixes" to "Puntuación de seguridad, auditoría y correcciones en 1 toque",
 
         // Wi-Fi
         "Main Wi-Fi" to "Wi-Fi principal",

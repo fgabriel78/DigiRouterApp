@@ -88,6 +88,7 @@ fun pageIcon(id: String): ImageVector = when (id) {
     "reboot" -> Icons.Filled.RestartAlt
     "stats" -> Icons.Filled.BarChart
     "speedtest" -> Icons.Filled.Speed
+    "security-health" -> Icons.Filled.Shield
     else -> Icons.Filled.Router
 }
 
