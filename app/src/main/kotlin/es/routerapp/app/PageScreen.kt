@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -35,6 +36,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -278,6 +280,10 @@ private fun InstanceCard(
     var busy by remember(inst) { mutableStateOf(false) }
     var confirmSave by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var showWifiQr by remember { mutableStateOf(false) }
+    val wifiData = remember(section.id, edits.toMap()) {
+        WifiQr.extractWifiSectionData(section.id, edits)
+    }
     val ctx = LocalContext.current
 
     val editable = if (section.readOnly) emptyList() else section.fields.filter { it.type != FieldType.Info }
@@ -316,6 +322,17 @@ private fun InstanceCard(
                             Text(stringResource(R.string.save), Modifier.padding(start = 8.dp))
                         }
                     }
+                    if (wifiData != null && wifiData.enabled && wifiData.ssid.isNotEmpty()) {
+                        FilledTonalIconButton(
+                            enabled = !busy,
+                            onClick = { showWifiQr = true },
+                        ) {
+                            Icon(
+                                Icons.Filled.QrCode2,
+                                contentDescription = stringResource(R.string.wifi_qr_title),
+                            )
+                        }
+                    }
                     if (section.deletable) {
                         FilledIconButton(
                             enabled = !busy,
@@ -330,6 +347,19 @@ private fun InstanceCard(
                 }
             }
         }
+    }
+
+    if (showWifiQr && wifiData != null) {
+        WifiQrBottomSheet(
+            ssid = wifiData.ssid,
+            psk = wifiData.psk,
+            securityMode = wifiData.securityMode,
+            hidden = wifiData.hidden,
+            bands = wifiData.bands,
+            category = wifiData.category,
+            additionalIndex = wifiData.additionalIndex,
+            onDismiss = { showWifiQr = false },
+        )
     }
 
     if (confirmSave) {

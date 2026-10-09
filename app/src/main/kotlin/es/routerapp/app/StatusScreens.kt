@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.NetworkWifi1Bar
 import androidx.compose.material.icons.filled.NetworkWifi2Bar
 import androidx.compose.material.icons.filled.NetworkWifi3Bar
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Schedule
@@ -96,7 +97,7 @@ private fun fmtBytes(b: Long): String = when {
 }
 
 @Composable
-private fun bandName(b: String?): String = when {
+internal fun bandName(b: String?): String = when {
     b == null -> ""
     b.startsWith("2") -> stringResource(R.string.band_2_4)
     b.startsWith("5") -> stringResource(R.string.band_5)
@@ -111,6 +112,7 @@ fun DashboardScreen(
     recovery: RecoveryRunner = RecoveryRunner.NoOp,
 ) {
     var reloadKey by remember { mutableIntStateOf(0) }
+    var inspectingWifi by remember { mutableStateOf<ConsolidatedWifiNetwork?>(null) }
     val snack = remember { SnackbarHostState() }
     val data by produceState<Result<DashboardData>?>(null, reloadKey) {
         value = null
@@ -339,11 +341,13 @@ fun DashboardScreen(
                                 WifiNetworkCategory.PRIMARY -> 2
                                 WifiNetworkCategory.GUEST -> 3
                                 WifiNetworkCategory.ADDITIONAL -> 5
+                                WifiNetworkCategory.MLO -> 2
                             }
                             val typeLabel = when (net.category) {
                                 WifiNetworkCategory.PRIMARY -> stringResource(R.string.wifi_type_primary)
                                 WifiNetworkCategory.GUEST -> stringResource(R.string.wifi_type_guest)
                                 WifiNetworkCategory.ADDITIONAL -> stringResource(R.string.wifi_type_additional, net.additionalIndex ?: 1)
+                                WifiNetworkCategory.MLO -> stringResource(R.string.wifi_type_mlo)
                             }
                             val titleText = if (on) net.ssid else typeLabel
                             val subtitleText = if (on) {
@@ -368,6 +372,15 @@ fun DashboardScreen(
                                         Text(titleText, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         Text(subtitleText, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
+                                    if (on && net.ssid.isNotEmpty()) {
+                                        IconButton(onClick = { inspectingWifi = net }) {
+                                            Icon(
+                                                Icons.Filled.QrCode2,
+                                                contentDescription = stringResource(R.string.wifi_qr_title),
+                                                tint = c.primary,
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -375,6 +388,13 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    inspectingWifi?.let { net ->
+        WifiQrBottomSheet(
+            network = net,
+            onDismiss = { inspectingWifi = null },
+        )
     }
 }
 

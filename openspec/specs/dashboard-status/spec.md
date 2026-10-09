@@ -46,6 +46,11 @@ The system SHALL display the state and details of all enabled wireless networks 
 - **WHEN** the dashboard renders
 - **THEN** it renders a single status card indicating that Wi-Fi is globally disabled.
 
+#### Scenario: Launch Wi-Fi QR credential sharing from active network card
+- **GIVEN** an active Wi-Fi status card rendered on the dashboard
+- **WHEN** the user interacts with the QR action on the card
+- **THEN** the system launches the Wi-Fi QR sharing sheet initialized with the network's SSID, passphrase, security mode, and active bands.
+
 ### Requirement: Connected Host Discovery and Categorization
 The system SHALL discover local network hosts across wireless and wired interfaces and determine their online activity status, link speeds, connection medium, and associated EasyMesh node.
 

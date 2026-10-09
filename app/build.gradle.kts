@@ -20,8 +20,8 @@ android {
         applicationId = "es.routerapp.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.6.0"
+        versionCode = 12
+        versionName = "1.7.0"
     }
 
     signingConfigs {
@@ -64,6 +64,7 @@ kotlin {
         optIn.addAll(
             "androidx.compose.material3.ExperimentalMaterial3Api",
             "androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
+            "androidx.compose.foundation.layout.ExperimentalLayoutApi",
         )
     }
 }
@@ -80,6 +81,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.zxing.core)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit)

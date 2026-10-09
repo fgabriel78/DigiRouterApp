@@ -1,32 +1,53 @@
 schema: spec-driven
 
-# Project context (optional)
-# Add only constraints that should guide OpenSpec artifacts and workflows.
-# Include constraints an agent cannot infer by reading the code.
-# Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+# Project context: Authoritative architecture, technical choices, and design standards.
+# These constraints guide all OpenSpec proposals, specs, designs, tasks, and implementations.
+context: |
+  Project: RouterApp (Android Companion Application for Router Management)
+  
+  1. Architecture & Modularization:
+     - Multi-module Gradle build:
+       * `:protocol`: Pure Kotlin engine handling router communication (TR-181/OID data models, PageEngine, Catalog, action calls `ACT_*`, device discovery). Keep free of Android framework dependencies.
+       * `:app`: Android application module containing UI, Jetpack Compose screens, ViewModels, and Android platform integrations (Clipboard, Intent Share, Biometrics, Keystore).
+     - Separation of Concerns: New router data structures or API calls belong in `:protocol`; presentation and UI orchestration belong in `:app`.
+     - Graceful Degradation: Dashboards and status screens must tolerate partial metric load failures (e.g. GPON, Mesh, WAN stats) without failing the whole screen.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  2. Kotlin & Android Standards:
+     - Kotlin 2.x, JVM 17 target, Android minSdk 26, targetSdk 36, compileSdk 37.
+     - Coroutines & Flow: Use structured concurrency with Dispatchers.IO for networking and I/O.
+     - Security: Keep Wi-Fi and credential passphrases masked by default in the UI with explicit reveal toggles. Store sensitive credentials in Android Keystore / EncryptedSharedPreferences.
+     - Testing: Unit tests run in JVM via `./gradlew testDebugUnitTest`. All consolidation logic, credential formatting, data transformations, and state mappings must have unit test coverage without emulator dependencies.
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+  3. Material 3 Expressive & UI Guidelines:
+     - UI Stack: Pure Jetpack Compose with Material 3 Expressive (1.5.0+). Do not use legacy View bindings or Tailwind/CSS utilities.
+     - Design Language:
+       * Expressive Tokens: Employ group palettes (`groupPalette`), semantic containers (`surfaceContainerHigh`, `surfaceContainerHighest`), and shape-morphing badges (`ShapeBadge`).
+       * Glanceable Dashboard: Bento-style grid (`LazyVerticalGrid`) with rounded corners (28.dp–32.dp) and distinct iconography per network/device type.
+       * Modals & Bottom Sheets: Use `ModalBottomSheet` with `rememberBottomSheetState(initialValue = SheetValue.Hidden)`.
+       * Optical Accessibility: Barcodes, QR codes, and optical scanners require high-contrast presentation (e.g., dedicated pure-white background container with padding even in Dark Theme).
+     - Localization: Bilingual project. All user-visible strings must be declared in both English (`values/strings.xml`) and Spanish (`values-es/strings.xml`).
+
+rules:
+  proposal:
+    - Focus on user value, technical motivation, and capability deltas.
+    - Explicitly classify architectural impact across :protocol and :app.
+    - Always identify modified or added OpenSpec capabilities.
+  design:
+    - Document technical decisions with rationale and alternatives considered.
+    - Include ASCII architecture diagrams for user flows, data transformations, and state transitions.
+    - Detail edge cases (e.g. dark theme contrast, offline state, credential masking, error handling).
+  tasks:
+    - Break implementation into small, incremental, sequential task groups.
+    - Land unit tests alongside feature implementation, not deferred to the end.
+    - State concrete verification criteria for each task (e.g., test command, verifiable UI behavior).
+
+operations:
+  apply:
+    guidance:
+      - Maintain clean compilation with zero warnings on Material 3 Expressive APIs.
+      - Execute `./gradlew testDebugUnitTest` to verify functionality and ensure no regressions.
+      - Keep git diffs minimal and scoped to the task.
+  archive:
+    guidance:
+      - Verify the change with `openspec validate` before finalizing.
+      - Confirm all main specs reflect the implemented delta behavior.
