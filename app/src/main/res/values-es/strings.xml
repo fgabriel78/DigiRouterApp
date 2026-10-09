@@ -85,4 +85,41 @@
     <string name="home_hero_online">Conectado</string>
     <string name="home_hero_offline">Desconectado</string>
     <string name="home_router_model">DIGI XGB430v Pro</string>
+
+    <!-- Device Categories -->
+    <string name="category_phone">Teléfono</string>
+    <string name="category_tablet">Tablet</string>
+    <string name="category_computer">Ordenador</string>
+    <string name="category_tv">Smart TV</string>
+    <string name="category_console">Consola</string>
+    <string name="category_iot">Hogar / IoT</string>
+    <string name="category_printer">Impresora</string>
+    <string name="category_router">Red / AP</string>
+    <string name="category_other">Otro</string>
+
+    <!-- Device Vendor & Privacy Badges -->
+    <string name="device_private_mac">MAC privada</string>
+    <string name="device_private_mac_desc">Dirección privada aleatoria</string>
+    <string name="device_vendor_unknown">Desconocido</string>
+    <string name="device_vendor">Fabricante</string>
+    <string name="device_vendor_inferred">(detectado por nombre)</string>
+    <string name="device_private_mac_explanation">Este dispositivo usa una dirección MAC aleatoria para proteger su privacidad. No es posible consultar el fabricante por hardware, pero puede deducirse por su nombre en red.</string>
+    <string name="device_category_suggested">Sugerida</string>
+
+    <!-- Device Detail Sheet -->
+    <string name="device_details_title">Detalles del dispositivo</string>
+    <string name="device_alias_label">Nombre / Alias</string>
+    <string name="device_alias_placeholder">ej. Smart TV Salón</string>
+    <string name="device_category_label">Categoría</string>
+    <string name="device_specs_title">Conexión y hardware</string>
+    <string name="device_hostname">Nombre de host original</string>
+    <string name="device_ip">Dirección IP</string>
+    <string name="device_mac">Dirección MAC</string>
+    <string name="device_connection">Conexión</string>
+    <string name="device_signal">Potencia de señal</string>
+    <string name="device_link_rate">Velocidad de enlace</string>
+    <string name="device_mesh_node">Nodo Mesh</string>
+    <string name="device_reset_custom">Restablecer valores</string>
+    <string name="device_reset_done">Personalizaciones restablecidas</string>
+    <string name="device_saved_done">Personalizaciones guardadas</string>
 </resources>

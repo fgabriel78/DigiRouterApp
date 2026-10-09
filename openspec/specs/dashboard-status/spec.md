@@ -112,3 +112,71 @@ The system SHALL aggregate and display operational status, backhaul link health,
 - **GIVEN** `DEV2_WIFI_APDEV` returns no active agent nodes or EasyMesh is disabled
 - **WHEN** the summary dashboard renders
 - **THEN** it displays the standalone primary router hardware card and standard summary stats without the multi-node mesh section.
+
+### Requirement: Hardware Manufacturer Identification and Private MAC Detection
+The system SHALL resolve client MAC addresses against an offline database of IEEE Organizationally Unique Identifier (OUI) prefixes to determine hardware manufacturers, and SHALL identify IEEE 802 locally administered addresses as private MACs.
+
+#### Scenario: Identify known hardware vendor from MAC OUI
+- **GIVEN** a connected host with a globally unique MAC address matching a known IEEE OUI prefix
+- **WHEN** the host is rendered in the devices list or device detail sheet
+- **THEN** the system displays the hardware manufacturer name (e.g. Apple, Samsung, Sony) alongside the device details.
+
+#### Scenario: Identify private or randomized MAC address
+- **GIVEN** a connected host whose MAC address has the IEEE locally administered bit set (second least-significant bit of the first byte)
+- **WHEN** the host is rendered in the devices list or device detail sheet
+- **THEN** the system identifies the address as a private MAC address instead of attempting a vendor match.
+
+### Requirement: Custom Device Aliases and Categorization
+The system SHALL allow users to assign custom friendly aliases and category icons to connected devices, persisting the metadata locally across application sessions keyed by client MAC address.
+
+#### Scenario: Render device card with custom alias and category
+- **GIVEN** a connected device with an assigned alias and category in local storage
+- **WHEN** the device card renders in the devices screen
+- **THEN** the custom alias is displayed as the primary title, the selected category icon is displayed, and a vendor badge is shown alongside the title.
+
+#### Scenario: Fallback display when no alias is configured
+- **GIVEN** a connected device without custom metadata in local storage
+- **WHEN** the device card renders in the devices screen
+- **THEN** the router-reported hostname is displayed as the primary title, accompanied by a vendor badge or private MAC indicator, and the default connection icon is used.
+
+#### Scenario: Inspect and edit device metadata in detail sheet
+- **GIVEN** a user selecting a device card in the devices screen
+- **WHEN** the device detail bottom sheet is opened
+- **THEN** the sheet displays detailed connection metrics (IP, MAC, vendor, EasyMesh AP node, link speed, signal level) and allows the user to edit the alias and choose from predefined categories (Phone, Tablet, Computer, TV, Console, Smart Home/IoT, Printer, Network/AP, Other).
+
+#### Scenario: Reset custom device metadata
+- **GIVEN** a device with existing custom metadata in local storage
+- **WHEN** the user selects the reset or clear action in the device detail sheet
+- **THEN** the custom alias and category are removed from local storage and the device card immediately reverts to default router-provided title and icon.
+
+### Requirement: Intelligent Hostname-Based Vendor and Category Heuristics
+The system SHALL analyze client hostnames using pattern-matching heuristics to infer hardware manufacturers and default device categories when physical OUI resolution is unavailable or the MAC address is randomized.
+
+#### Scenario: Infer mobile device vendor and category from hostname
+- **GIVEN** a connected host whose hostname matches mobile model patterns (such as `iPhone`, `iPad`, `Galaxy`, `Pixel`, `Redmi`, `POCO`)
+- **WHEN** the host is rendered in the devices list or device detail sheet without a user-assigned alias or category
+- **THEN** the system infers the corresponding manufacturer (e.g. Apple, Samsung, Google, Xiaomi) and device category (`PHONE` or `TABLET`), displaying the inferred vendor badge and category icon.
+
+#### Scenario: Infer computer category from desktop or laptop hostname
+- **GIVEN** a connected host whose hostname matches computer naming conventions (such as `DESKTOP-*`, `LAPTOP-*`, `MacBook*`, `iMac*`, `*-PC`)
+- **WHEN** the host is rendered without a user-assigned category
+- **THEN** the system applies the `COMPUTER` category icon by default.
+
+#### Scenario: Infer entertainment and smart home device types
+- **GIVEN** a connected host whose hostname matches consoles, smart TVs, or smart home devices (such as `Switch`, `PlayStation`, `Xbox`, `Apple-TV`, `Fire-TV`, `Chromecast`, `Echo`, `Nest`)
+- **WHEN** the host is rendered in the devices list or device detail sheet
+- **THEN** the system applies the corresponding category (`CONSOLE`, `TV`, or `IOT`) and resolves the respective vendor if identifiable.
+
+#### Scenario: Precedence of identification sources
+- **GIVEN** a connected device with multiple possible identification attributes
+- **WHEN** the device title, vendor badge, and category icon are resolved
+- **THEN** the system enforces precedence:
+  1. User-configured custom alias and category always take highest priority.
+  2. Physical IEEE OUI hardware manufacturer takes priority over heuristic manufacturer when available.
+  3. Hostname-inferred vendor and category apply when physical OUI is missing or when the MAC address is private.
+  4. If no vendor or heuristic match exists and the MAC is locally administered, the "Private MAC" badge is displayed.
+
+#### Scenario: Informative private MAC explanation in device detail
+- **GIVEN** a connected device identified as having a private MAC address
+- **WHEN** the device detail bottom sheet is displayed
+- **THEN** the sheet indicates that the device is using a randomized private address, explains that hardware OUI lookup is not possible for privacy reasons, and shows any heuristically inferred vendor alongside the explanation.

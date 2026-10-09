@@ -47,7 +47,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -391,7 +393,16 @@ fun DevicesScreen(
     engine: PageEngine,
     onBack: () -> Unit,
     recovery: RecoveryRunner = RecoveryRunner.NoOp,
+    metadataStore: DeviceMetadataStore? = null,
 ) {
+    val context = LocalContext.current
+    val store = remember(context, metadataStore) {
+        metadataStore ?: SharedPrefsDeviceMetadataStore(context)
+    }
+    var metadataMap by remember(store) {
+        mutableStateOf(store.getAll())
+    }
+    var inspectingDevice by remember { mutableStateOf<ConnectedDevice?>(null) }
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
     val data by produceState<Result<ConnectedDevicesData>?>(null, reloadKey) {
@@ -485,20 +496,71 @@ fun DevicesScreen(
                     }
                     if (list.isEmpty()) item { EmptyHint(stringResource(R.string.devices_none)) }
                     items(list) { d ->
+                        val customMeta = metadataMap[d.mac.trim().uppercase()]
+                        val resolved = remember(d.mac, d.name, d.ip, customMeta) {
+                            DeviceResolver.resolve(
+                                mac = d.mac,
+                                hostname = d.name,
+                                ip = d.ip,
+                                customMeta = customMeta,
+                            )
+                        }
+                        val title = resolved.displayTitle
+
                         Card(
-                            Modifier.fillMaxWidth(),
+                            onClick = { inspectingDevice = d },
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(28.dp),
                             colors = CardDefaults.cardColors(containerColor = if (d.active) c.surfaceContainerHigh else c.surfaceContainerLow),
                         ) {
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                val badgeIcon = resolved.category?.icon() ?: if (d.wifi) signalIcon(d.level) else Icons.Filled.Computer
+                                val badgeShapeIndex = if (resolved.category != null) 2 else if (d.wifi) 0 else 3
                                 ShapeBadge(
-                                    if (d.wifi) signalIcon(d.level) else Icons.Filled.Computer,
+                                    badgeIcon,
                                     if (d.active) c.tertiaryContainer else c.surfaceContainerHighest,
                                     if (d.active) c.onTertiaryContainer else c.onSurfaceVariant,
-                                    48.dp, if (d.wifi) 0 else 3,
+                                    48.dp, badgeShapeIndex,
                                 )
-                                Column(Modifier.weight(1f)) {
-                                    Text(d.name, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        Text(
+                                            title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false),
+                                        )
+                                        if (resolved.vendor != null) {
+                                            val isHeuristic = resolved.vendorSource == VendorSource.HOSTNAME_HEURISTIC
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = if (isHeuristic) c.secondaryContainer else c.surfaceContainerHighest,
+                                            ) {
+                                                Text(
+                                                    resolved.vendor,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = if (isHeuristic) c.onSecondaryContainer else c.onSurfaceVariant,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                )
+                                            }
+                                        } else if (resolved.isPrivateMac) {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = c.tertiaryContainer,
+                                            ) {
+                                                Text(
+                                                    stringResource(R.string.device_private_mac),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = c.onTertiaryContainer,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                )
+                                            }
+                                        }
+                                    }
                                     Text(d.ip.ifEmpty { d.mac }, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
                                     val nodeName = d.nodeName
                                     if (!nodeName.isNullOrEmpty()) {
@@ -517,5 +579,23 @@ fun DevicesScreen(
                 }
             }
         }
+    }
+
+    val currentDevice = inspectingDevice
+    if (currentDevice != null) {
+        val meta = metadataMap[currentDevice.mac.trim().uppercase()]
+        DeviceDetailSheet(
+            device = currentDevice,
+            initialMetadata = meta,
+            onDismiss = { inspectingDevice = null },
+            onSave = { updatedMeta ->
+                store.save(currentDevice.mac, updatedMeta)
+                metadataMap = store.getAll()
+            },
+            onReset = {
+                store.reset(currentDevice.mac)
+                metadataMap = store.getAll()
+            },
+        )
     }
 }

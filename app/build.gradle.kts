@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 // Release signing: read from keystore.properties (git-ignored, project root) or, failing that,
@@ -19,8 +20,8 @@ android {
         applicationId = "es.routerapp.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.5.0"
+        versionCode = 11
+        versionName = "1.6.0"
     }
 
     signingConfigs {
