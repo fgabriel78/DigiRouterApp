@@ -20,7 +20,49 @@ data class MeshNode(
     val uptime: Long?,
     /** Number of active clients associated with this node. */
     val connectedClientsCount: Int = 0,
-)
+) {
+    /** Evaluated diagnostic health of the backhaul link. */
+    val backhaulHealth: BackhaulHealth get() = evaluateBackhaulHealth(this)
+}
+
+/** Diagnostic health categorization of a satellite's backhaul connection to the controller. */
+enum class BackhaulHealth {
+    /** Ethernet wired backhaul connection with optimal throughput and stability. */
+    WIRED_OPTIMAL,
+    /** Wi-Fi backhaul with excellent signal quality. */
+    WIFI_EXCELLENT,
+    /** Wi-Fi backhaul with acceptable signal quality. */
+    WIFI_GOOD,
+    /** Wi-Fi backhaul with degraded or weak signal, advising relocation closer to the router. */
+    WIFI_WEAK,
+    /** No backhaul connection (e.g. for the primary router controller or offline/unconnected). */
+    NONE,
+}
+
+/** Evaluates the backhaul link health for an EasyMesh node. */
+fun evaluateBackhaulHealth(node: MeshNode): BackhaulHealth {
+    if (node.isController || node.backhaulType == null || !node.active) {
+        return BackhaulHealth.NONE
+    }
+    if (node.backhaulType.equals("Ethernet", ignoreCase = true)) {
+        return BackhaulHealth.WIRED_OPTIMAL
+    }
+    if (node.backhaulType.equals("Wi-Fi", ignoreCase = true) || node.backhaulType.equals("WiFi", ignoreCase = true)) {
+        val signal = node.backhaulSignal
+        val rate = node.linkRate
+        val isLevelFormat = signal != null && signal in 1..5
+        val signalLevel = if (isLevelFormat) signal else null
+        val isHighSignal = (signalLevel != null && signalLevel >= 4) || (signal != null && signal >= 140)
+        val isMedSignal = (signalLevel != null && signalLevel == 3) || (signal != null && signal in 100..139)
+
+        return when {
+            (rate != null && rate >= 600) || isHighSignal -> BackhaulHealth.WIFI_EXCELLENT
+            (rate != null && rate >= 200) || isMedSignal -> BackhaulHealth.WIFI_GOOD
+            else -> BackhaulHealth.WIFI_WEAK
+        }
+    }
+    return BackhaulHealth.NONE
+}
 
 /** A client known to the router (Wi-Fi or wired), as shown by the router's own "network map". */
 data class ConnectedDevice(

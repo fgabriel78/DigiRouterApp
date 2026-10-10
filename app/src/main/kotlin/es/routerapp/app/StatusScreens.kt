@@ -1,13 +1,16 @@
 package es.routerapp.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Lan
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LinkOff
@@ -58,6 +62,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -121,6 +126,7 @@ fun DashboardScreen(
     onBack: () -> Unit,
     recovery: RecoveryRunner = RecoveryRunner.NoOp,
     onNavigateToSecurity: () -> Unit = {},
+    onNavigateToTopology: () -> Unit = {},
 ) {
     var reloadKey by remember { mutableIntStateOf(0) }
     var inspectingWifi by remember { mutableStateOf<ConsolidatedWifiNetwork?>(null) }
@@ -336,15 +342,33 @@ fun DashboardScreen(
                     val hasMesh = d.meshNodes.count { it.active } > 1 || d.meshNodes.any { !it.isController && it.active }
                     if (hasMesh) {
                         item(span = { GridItemSpan(2) }) {
-                            Text(
-                                stringResource(R.string.mesh_network_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp),
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    stringResource(R.string.mesh_network_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                TextButton(onClick = onNavigateToTopology) {
+                                    Icon(
+                                        Icons.Filled.Hub,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(stringResource(R.string.topology_action_view))
+                                }
+                            }
                         }
                         gridItems(d.meshNodes.filter { it.active }, span = { GridItemSpan(2) }) { node ->
                             Card(
-                                Modifier.fillMaxWidth(),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = onNavigateToTopology),
                                 shape = RoundedCornerShape(28.dp),
                                 colors = CardDefaults.cardColors(containerColor = c.surfaceContainerHigh),
                             ) {
@@ -530,6 +554,7 @@ fun DevicesScreen(
     onBack: () -> Unit,
     recovery: RecoveryRunner = RecoveryRunner.NoOp,
     metadataStore: DeviceMetadataStore? = null,
+    onNavigateToTopology: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val store = remember(context, metadataStore) {
@@ -555,6 +580,9 @@ fun DevicesScreen(
     var selectedNodeMac by rememberSaveable { mutableStateOf<String?>(null) }
     val palette = groupPalette(Group.STATUS)
     ScreenScaffold(stringResource(R.string.screen_devices), onBack, snack, palette, pageIcon("devices"), actions = {
+        IconButton(onClick = onNavigateToTopology) {
+            Icon(Icons.Filled.Hub, contentDescription = stringResource(R.string.topology_action_tooltip))
+        }
         IconButton(onClick = { reloadKey++ }) { Icon(Icons.Filled.Refresh, stringResource(R.string.refresh)) }
     }) {
         val res = data

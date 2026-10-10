@@ -258,14 +258,25 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 onBack = { pageId = null },
                 onNavigateToPage = { pageId = it },
             )
+            id == "topology" || page?.id == "topology" -> TopologyScreen(
+                engine = engine,
+                onBack = { pageId = null },
+                recovery = vm,
+            )
             page == null -> HomeScreen(username, routerAddress, onOpen = { pageId = it.id }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(
                 engine = engine,
                 onBack = { pageId = null },
                 recovery = vm,
                 onNavigateToSecurity = { pageId = "security-health" },
+                onNavigateToTopology = { pageId = "topology" },
             )
-            page.id == "devices" -> DevicesScreen(engine, onBack = { pageId = null }, recovery = vm)
+            page.id == "devices" -> DevicesScreen(
+                engine = engine,
+                onBack = { pageId = null },
+                recovery = vm,
+                onNavigateToTopology = { pageId = "topology" },
+            )
             page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })
             else -> GenericPageScreen(page, engine, onBack = { pageId = null }, recovery = vm)
         }
