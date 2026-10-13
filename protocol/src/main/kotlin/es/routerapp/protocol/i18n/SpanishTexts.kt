@@ -55,8 +55,12 @@ object SpanishTexts {
         "Wired and Wi-Fi clients" to "Clientes por cable y Wi-Fi",
         "Speed test" to "Test de velocidad",
         "Test Wi-Fi download, upload, and latency" to "Mide velocidad de descarga, subida y latencia Wi-Fi",
+        "DIGI Assistant" to "Asistente DIGI",
+        "Unified diagnostic and optimization tools" to "Herramientas de diagnóstico y optimización",
         "Fiber Diagnostics" to "Diagnóstico de fibra",
         "Optical power and layered connectivity test" to "Potencia óptica y test de conectividad integral",
+        "Dual Diagnostic" to "Diagnóstico Dual",
+        "Router hardware ping vs mobile Wi-Fi latency comparison" to "Comparación de latencia entre hardware del router y Wi-Fi del móvil",
         "Network Security" to "Seguridad de la red",
         "Security score, posture audit and 1-tap fixes" to "Puntuación de seguridad, auditoría y correcciones en 1 toque",
 

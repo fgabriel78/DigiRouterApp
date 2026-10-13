@@ -90,6 +90,7 @@ fun pageIcon(id: String): ImageVector = when (id) {
     "speedtest" -> Icons.Filled.Speed
     "security-health" -> Icons.Filled.Shield
     "fiber-diag" -> Icons.Filled.Lan
+    "dual-diag" -> Icons.Filled.SwapHoriz
     else -> Icons.Filled.Router
 }
 
@@ -100,6 +101,7 @@ fun groupPalette(group: Group): Palette {
     val c = MaterialTheme.colorScheme
     return when (group) {
         Group.STATUS -> Palette(c.primaryContainer, c.onPrimaryContainer)
+        Group.ASSISTANT -> Palette(c.primaryContainer, c.onPrimaryContainer)
         Group.WIFI -> Palette(c.tertiaryContainer, c.onTertiaryContainer)
         Group.NETWORK -> Palette(c.secondaryContainer, c.onSecondaryContainer)
         Group.NAT -> Palette(c.primaryContainer, c.onPrimaryContainer)

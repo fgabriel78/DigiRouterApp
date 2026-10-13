@@ -227,5 +227,46 @@
     <string name="fiber_status_warning">Warning</string>
     <string name="fiber_status_failed">Failed</string>
     <string name="fiber_status_skipped">Skipped</string>
-    <string name="hero_fiber_diag_action">Tap for complete diagnostics</string>
+    <!-- DIGI Assistant Hub & Dual Diagnostic -->
+    <string name="page_digi_assistant_hub">DIGI Assistant</string>
+    <string name="page_digi_assistant_hub_desc">Unified diagnostic and optimization tools</string>
+    <string name="assistant_hub_title">DIGI Assistant</string>
+    <string name="assistant_hub_subtitle">Select a diagnostic tool to test your connection</string>
+    <string name="assistant_hub_card_fiber_title">Fiber Diagnostics (GPON)</string>
+    <string name="assistant_hub_card_fiber_desc">Optical power, attenuation margin, and end-to-end connectivity test</string>
+    <string name="assistant_hub_card_dual_title">Dual Diagnostic (Router vs Mobile)</string>
+    <string name="assistant_hub_card_dual_desc">Isolates Wi-Fi speed issues inside your home from DIGI fiber network</string>
+    <string name="hero_assistant_hub_action">Tap for DIGI Assistant diagnostics</string>
+
+    <string name="page_dual_diag">Dual Diagnostic</string>
+    <string name="page_dual_diag_desc">Router hardware ping vs mobile Wi-Fi latency comparison</string>
+    <string name="dual_diag_title">Dual Diagnostic</string>
+    <string name="dual_diag_subtitle">Router vs Mobile Latency Benchmark</string>
+    <string name="dual_diag_running">Running dual diagnostics...</string>
+    <string name="dual_diag_rerun">Re-run Test</string>
+    <string name="dual_diag_hop_wifi">Home Wi-Fi (Mobile → Router)</string>
+    <string name="dual_diag_hop_fiber">DIGI Fiber (Router → Cloudflare)</string>
+    <string name="dual_diag_hop_mobile_net">Total Latency (Mobile → Cloudflare)</string>
+    <string name="dual_diag_metric_avg">Average</string>
+    <string name="dual_diag_metric_min_max">Min / Max</string>
+    <string name="dual_diag_metric_jitter">Jitter</string>
+    <string name="dual_diag_metric_loss">Packet Loss</string>
+    <string name="dual_diag_estimated_notice">Estimated fiber latency (router diagnostic unexposed)</string>
+
+    <string name="dual_verdict_wifi_title">Bottleneck: Local Wi-Fi</string>
+    <string name="dual_verdict_wifi_desc">The speed issue is in your Wi-Fi signal at home, not in DIGI\'s fiber.</string>
+    <string name="dual_verdict_wifi_advice">Connect to 5 GHz Wi-Fi, move closer to the router, or avoid physical obstructions.</string>
+    <string name="dual_verdict_fiber_title">Bottleneck: Carrier Fiber Network</string>
+    <string name="dual_verdict_fiber_desc">The issue is in the external fiber network, your Wi-Fi connection is optimal.</string>
+    <string name="dual_verdict_fiber_advice">The fiber line shows elevated latency or packet loss. Contact DIGI customer service if it persists.</string>
+    <string name="dual_verdict_optimal_title">Connection Optimal</string>
+    <string name="dual_verdict_optimal_desc">Both DIGI fiber and your Wi-Fi network are working at full performance.</string>
+    <string name="dual_verdict_optimal_advice">Your latency and packet delivery are excellent across both local and internet hops.</string>
+    <string name="dual_verdict_both_title">Degraded Performance</string>
+    <string name="dual_verdict_both_desc">Elevated latency detected across both local Wi-Fi and the fiber link.</string>
+    <string name="dual_verdict_both_advice">Restart the router and check if background downloads or devices are congesting the network.</string>
+    <string name="dual_verdict_inconclusive_title">Diagnostic Inconclusive</string>
+    <string name="dual_verdict_inconclusive_desc">Could not collect sufficient metrics to isolate the bottleneck.</string>
+    <string name="dual_verdict_inconclusive_advice">Ensure your mobile device is connected to the router\'s Wi-Fi and retry.</string>
 </resources>
+

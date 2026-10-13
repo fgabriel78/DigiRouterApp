@@ -74,7 +74,7 @@ fun FiberDiagnosticScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snack = remember { SnackbarHostState() }
-    val palette = groupPalette(Group.STATUS)
+    val palette = groupPalette(Group.ASSISTANT)
 
     ScreenScaffold(
         title = stringResource(R.string.fiber_diag_title),

@@ -227,5 +227,46 @@
     <string name="fiber_status_warning">Aviso</string>
     <string name="fiber_status_failed">Fallo detectado</string>
     <string name="fiber_status_skipped">Omitido</string>
-    <string name="hero_fiber_diag_action">Pulsa para ver diagnóstico completo</string>
+    <!-- Asistente DIGI Hub y Diagnóstico Dual -->
+    <string name="page_digi_assistant_hub">Asistente DIGI</string>
+    <string name="page_digi_assistant_hub_desc">Herramientas de diagnóstico y optimización</string>
+    <string name="assistant_hub_title">Asistente DIGI</string>
+    <string name="assistant_hub_subtitle">Elige una herramienta para comprobar tu conexión</string>
+    <string name="assistant_hub_card_fiber_title">Diagnóstico de Fibra Óptica (GPON)</string>
+    <string name="assistant_hub_card_fiber_desc">Potencia óptica, atenuación y test integral de conexión por capas</string>
+    <string name="assistant_hub_card_dual_title">Diagnóstico Dual (Router vs Móvil)</string>
+    <string name="assistant_hub_card_dual_desc">Descubre con exactitud si la lentitud está en tu Wi-Fi o en la fibra de DIGI</string>
+    <string name="hero_assistant_hub_action">Pulsa para abrir el Asistente DIGI</string>
+
+    <string name="page_dual_diag">Diagnóstico Dual</string>
+    <string name="page_dual_diag_desc">Comparación de latencia entre hardware del router y Wi-Fi del móvil</string>
+    <string name="dual_diag_title">Diagnóstico Dual</string>
+    <string name="dual_diag_subtitle">Router vs Móvil (Aislamiento de Cuello de Botella)</string>
+    <string name="dual_diag_running">Ejecutando diagnóstico dual...</string>
+    <string name="dual_diag_rerun">Repetir prueba</string>
+    <string name="dual_diag_hop_wifi">Wi-Fi local (Móvil → Router)</string>
+    <string name="dual_diag_hop_fiber">Fibra DIGI (Router → Cloudflare)</string>
+    <string name="dual_diag_hop_mobile_net">Latencia total (Móvil → Cloudflare)</string>
+    <string name="dual_diag_metric_avg">Media</string>
+    <string name="dual_diag_metric_min_max">Mín / Máx</string>
+    <string name="dual_diag_metric_jitter">Jitter</string>
+    <string name="dual_diag_metric_loss">Pérdida</string>
+    <string name="dual_diag_estimated_notice">Latencia de fibra estimada (diagnóstico no expuesto en firmware)</string>
+
+    <string name="dual_verdict_wifi_title">El problema está en tu Wi-Fi dentro de casa</string>
+    <string name="dual_verdict_wifi_desc">El problema de velocidad está en tu señal Wi-Fi dentro de casa, no en la fibra de DIGI.</string>
+    <string name="dual_verdict_wifi_advice">Conéctate a la banda Wi-Fi de 5 GHz, acércate al router o reduce obstáculos e interferencias.</string>
+    <string name="dual_verdict_fiber_title">El problema está en la red de fibra exterior</string>
+    <string name="dual_verdict_fiber_desc">El problema está en la red exterior de fibra, tu conexión Wi-Fi es óptima.</string>
+    <string name="dual_verdict_fiber_advice">La red de fibra presenta latencia elevada o pérdida de paquetes externa. Contacta con DIGI si persiste.</string>
+    <string name="dual_verdict_optimal_title">Conexión a pleno rendimiento</string>
+    <string name="dual_verdict_optimal_desc">Tanto la fibra de DIGI como tu red Wi-Fi funcionan a pleno rendimiento.</string>
+    <string name="dual_verdict_optimal_advice">Tu latencia y entrega de paquetes son excelentes tanto en red local como en Internet.</string>
+    <string name="dual_verdict_both_title">Rendimiento degradado</string>
+    <string name="dual_verdict_both_desc">Se detecta latencia elevada tanto en tu red Wi-Fi como en la red de fibra exterior.</string>
+    <string name="dual_verdict_both_advice">Reinicia el router y comprueba si hay descargas intensivas en curso en otros dispositivos.</string>
+    <string name="dual_verdict_inconclusive_title">Diagnóstico no concluyente</string>
+    <string name="dual_verdict_inconclusive_desc">No se pudieron obtener métricas suficientes para aislar el problema.</string>
+    <string name="dual_verdict_inconclusive_advice">Asegúrate de que tu móvil está conectado al Wi-Fi del router y vuelve a probar.</string>
 </resources>
+

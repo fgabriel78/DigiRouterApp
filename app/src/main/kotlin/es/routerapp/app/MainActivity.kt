@@ -242,7 +242,16 @@ private fun Spacer(height: Int) = Box(Modifier.size(height.dp))
 private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: String = "192.168.1.1") {
     var pageId by rememberSaveable { mutableStateOf<String?>(null) }
     val engine = vm.engine
-    BackHandler(enabled = pageId != null) { pageId = null }
+
+    fun navigateTo(dest: String?) {
+        pageId = dest
+    }
+
+    fun navigateBack() {
+        pageId = null
+    }
+
+    BackHandler(enabled = pageId != null) { navigateBack() }
     if (engine == null) return
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
@@ -255,36 +264,40 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
         when {
             id == "security-health" || page?.id == "security-health" -> SecurityHealthScreen(
                 viewModel = SecurityHealthViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
-                onBack = { pageId = null },
-                onNavigateToPage = { pageId = it },
+                onBack = { navigateBack() },
+                onNavigateToPage = { navigateTo(it) },
+            )
+            id == "dual-diag" || page?.id == "dual-diag" -> DualDiagnosticScreen(
+                viewModel = DualDiagnosticViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
+                onBack = { navigateBack() },
             )
             id == "fiber-diag" || page?.id == "fiber-diag" -> FiberDiagnosticScreen(
                 viewModel = FiberDiagnosticViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
-                onBack = { pageId = null },
+                onBack = { navigateBack() },
             )
             id == "topology" || page?.id == "topology" -> TopologyScreen(
                 engine = engine,
-                onBack = { pageId = null },
+                onBack = { navigateBack() },
                 recovery = vm,
                 metadataStore = vm.metadataStore,
             )
-            page == null -> HomeScreen(username, routerAddress, onOpen = { pageId = it.id }, onLogout = vm::logout)
+            page == null -> HomeScreen(username, routerAddress, onOpen = { navigateTo(it.id) }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(
                 engine = engine,
-                onBack = { pageId = null },
+                onBack = { navigateBack() },
                 recovery = vm,
-                onNavigateToSecurity = { pageId = "security-health" },
-                onNavigateToTopology = { pageId = "topology" },
+                onNavigateToSecurity = { navigateTo("security-health") },
+                onNavigateToTopology = { navigateTo("topology") },
             )
             page.id == "devices" -> DevicesScreen(
                 engine = engine,
-                onBack = { pageId = null },
+                onBack = { navigateBack() },
                 recovery = vm,
                 metadataStore = vm.metadataStore,
-                onNavigateToTopology = { pageId = "topology" },
+                onNavigateToTopology = { navigateTo("topology") },
             )
-            page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })
-            else -> GenericPageScreen(page, engine, onBack = { pageId = null }, recovery = vm)
+            page.id == "speedtest" -> SpeedTestScreen(onBack = { navigateBack() })
+            else -> GenericPageScreen(page, engine, onBack = { navigateBack() }, recovery = vm)
         }
     }
 }
@@ -574,6 +587,7 @@ private fun CategoryItemRow(
         Group.STORAGE -> c.tertiaryContainer to c.onTertiaryContainer
         Group.SYSTEM -> c.surfaceContainerHighest to c.onSurface
         Group.STATUS -> c.primaryContainer to c.onPrimaryContainer
+        Group.ASSISTANT -> c.primaryContainer to c.onPrimaryContainer
     }
 
     Row(

@@ -20,8 +20,8 @@ android {
         applicationId = "es.routerapp.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 15
-        versionName = "1.10.0"
+        versionCode = 16
+        versionName = "1.11.0"
     }
 
     signingConfigs {

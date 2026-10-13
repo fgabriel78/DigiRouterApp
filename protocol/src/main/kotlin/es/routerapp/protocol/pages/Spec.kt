@@ -80,6 +80,7 @@ data class PageAction(
 /** [title] is English source text; translate it with `tr(group.title)` when displaying. */
 enum class Group(val title: String) {
     STATUS("Status"),
+    ASSISTANT("DIGI Assistant"),
     WIFI("Wi-Fi"),
     NETWORK("Local network"),
     NAT("Ports and NAT"),

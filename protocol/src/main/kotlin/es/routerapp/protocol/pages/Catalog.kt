@@ -520,20 +520,22 @@ object Catalog {
         ),
     )
 
-    // ---------- Status ----------
+    // ---------- Status & Diagnostics ----------
     private val dashboard = Page(id = "dashboard", title = "Summary", group = Group.STATUS,
         description = "Router, Internet and Wi-Fi status", custom = true)
     private val devices = Page(id = "devices", title = "Connected devices", group = Group.STATUS,
         description = "Wired and Wi-Fi clients", custom = true)
     private val speedtest = Page(id = "speedtest", title = "Speed test", group = Group.STATUS,
         description = "Test Wi-Fi download, upload, and latency", custom = true)
-    private val fiberDiag = Page(id = "fiber-diag", title = "Fiber Diagnostics", group = Group.STATUS,
+    private val fiberDiag = Page(id = "fiber-diag", title = "Fiber Diagnostics", group = Group.ASSISTANT,
         description = "Optical power and layered connectivity test", custom = true)
+    private val dualDiag = Page(id = "dual-diag", title = "Dual Diagnostic", group = Group.ASSISTANT,
+        description = "Router hardware ping vs mobile Wi-Fi latency comparison", custom = true)
     private val securityHealth = Page(id = "security-health", title = "Network Security", group = Group.SECURITY,
         description = "Security score, posture audit and 1-tap fixes", custom = true)
 
     val pages: List<Page> = listOf(
-        dashboard, devices, speedtest, fiberDiag,
+        dashboard, devices, speedtest, fiberDiag, dualDiag,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
         lan, dhcpReservations, ddns,
         virtualServers, portTrigger, dmz, upnp, alg,
