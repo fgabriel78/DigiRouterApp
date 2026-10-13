@@ -13,15 +13,15 @@ rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.u
 fun signingValue(key: String, env: String): String? = keystoreProps.getProperty(key) ?: System.getenv(env)
 
 android {
-    namespace = "es.routerapp.app"
+    namespace = "es.digirouter.app"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "es.routerapp.app"
+        applicationId = "es.digirouter.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.11.0"
+        versionCode = 17
+        versionName = "1.11.1"
     }
 
     signingConfigs {
