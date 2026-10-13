@@ -258,6 +258,10 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 onBack = { pageId = null },
                 onNavigateToPage = { pageId = it },
             )
+            id == "fiber-diag" || page?.id == "fiber-diag" -> FiberDiagnosticScreen(
+                viewModel = FiberDiagnosticViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
+                onBack = { pageId = null },
+            )
             id == "topology" || page?.id == "topology" -> TopologyScreen(
                 engine = engine,
                 onBack = { pageId = null },
@@ -325,7 +329,8 @@ private fun HomeScreen(
                 HeroStatusCard(
                     address = routerAddress,
                     onClick = {
-                        allPages.find { it.id == "dashboard" }?.let(onOpen)
+                        allPages.find { it.id == "fiber-diag" }?.let(onOpen)
+                            ?: allPages.find { it.id == "dashboard" }?.let(onOpen)
                     },
                 )
             }
