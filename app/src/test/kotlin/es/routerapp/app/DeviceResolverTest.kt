@@ -111,4 +111,60 @@ class DeviceResolverTest {
         )
         assertEquals("02:00:00:00:00:02", withMac.displayTitle)
     }
+
+    @Test
+    fun `deep fingerprint takes precedence over hardware OUI and hostname heuristics`() {
+        val fp = DeviceFingerprint(
+            exactModel = "PlayStation 5",
+            vendor = "Sony",
+            category = DeviceCategory.CONSOLE,
+            discoveryMethod = "UPnP",
+        )
+
+        // Given a device with private MAC, a generic/confusing hostname, but with a deep fingerprint
+        val resolved = DeviceResolver.resolve(
+            mac = PRIVATE_MAC,
+            hostname = "android-d3b1234",
+            ip = "192.168.1.100",
+            fingerprint = fp,
+        )
+
+        assertEquals("PlayStation 5", resolved.displayTitle)
+        assertEquals("PlayStation 5", resolved.exactModel)
+        assertEquals("Sony", resolved.vendor)
+        assertEquals(VendorSource.DEEP_FINGERPRINT, resolved.vendorSource)
+        assertEquals(DeviceCategory.CONSOLE, resolved.category)
+        assertFalse(resolved.isCategoryInferred)
+        assertTrue(resolved.isDeepFingerprinted)
+    }
+
+    @Test
+    fun `custom user alias overrides deep fingerprint exact model`() {
+        val fp = DeviceFingerprint(
+            exactModel = "LG OLED55C2",
+            vendor = "LG",
+            category = DeviceCategory.TV,
+            discoveryMethod = "UPnP",
+        )
+        val custom = DeviceCustomMetadata(
+            alias = "Cinema TV",
+            category = DeviceCategory.TV,
+        )
+
+        val resolved = DeviceResolver.resolve(
+            mac = HARDWARE_MAC_SONY,
+            hostname = "lg-webos-tv",
+            ip = "192.168.1.105",
+            customMeta = custom,
+            fingerprint = fp,
+        )
+
+        // Custom alias takes priority over exact model
+        assertEquals("Cinema TV", resolved.displayTitle)
+        assertEquals("LG OLED55C2", resolved.exactModel)
+        assertEquals("LG", resolved.vendor)
+        assertEquals(VendorSource.DEEP_FINGERPRINT, resolved.vendorSource)
+        assertEquals(DeviceCategory.TV, resolved.category)
+        assertFalse(resolved.isCategoryInferred)
+    }
 }

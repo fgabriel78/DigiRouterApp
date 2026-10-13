@@ -16,9 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.DevicesOther
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lan
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Print
@@ -92,14 +94,16 @@ fun DeviceDetailSheet(
     onDismiss: () -> Unit,
     onSave: (DeviceCustomMetadata) -> Unit,
     onReset: () -> Unit,
+    fingerprint: DeviceFingerprint? = null,
     sheetState: SheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden),
 ) {
-    val resolved = remember(device.mac, device.name, device.ip, initialMetadata) {
+    val resolved = remember(device.mac, device.name, device.ip, initialMetadata, fingerprint) {
         DeviceResolver.resolve(
             mac = device.mac,
             hostname = device.name,
             ip = device.ip,
             customMeta = initialMetadata,
+            fingerprint = fingerprint,
         )
     }
 
@@ -228,6 +232,14 @@ fun DeviceDetailSheet(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
+                        // Hardware Model (when deep fingerprinted)
+                        if (resolved.exactModel != null) {
+                            MetricRow(
+                                label = stringResource(R.string.device_model_label),
+                                value = resolved.exactModel,
+                            )
+                        }
+
                         // Original Hostname
                         MetricRow(
                             label = stringResource(R.string.device_hostname),
@@ -255,12 +267,39 @@ fun DeviceDetailSheet(
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium,
                                     )
-                                    if (resolved.vendorSource == VendorSource.HOSTNAME_HEURISTIC) {
-                                        Text(
-                                            text = stringResource(R.string.device_vendor_inferred),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = colors.primary,
-                                        )
+                                    when (resolved.vendorSource) {
+                                        VendorSource.DEEP_FINGERPRINT -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = colors.primaryContainer,
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.CheckCircle,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(12.dp),
+                                                        tint = colors.onPrimaryContainer,
+                                                    )
+                                                    Text(
+                                                        text = stringResource(R.string.device_fingerprint_badge),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = colors.onPrimaryContainer,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        VendorSource.HOSTNAME_HEURISTIC -> {
+                                            Text(
+                                                text = stringResource(R.string.device_vendor_inferred),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = colors.primary,
+                                            )
+                                        }
+                                        else -> {}
                                     }
                                 }
                             } else {
@@ -376,6 +415,41 @@ fun DeviceDetailSheet(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.onTertiaryContainer,
                             )
+                        }
+                    }
+                }
+
+                // Deep Network Fingerprint Information
+                if (fingerprint != null) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = colors.surfaceContainerHighest,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.Fingerprint,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                                tint = colors.primary,
+                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = stringResource(R.string.device_fingerprint_source),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colors.onSurface,
+                                )
+                                Text(
+                                    text = stringResource(R.string.device_fingerprint_desc, fingerprint.discoveryMethod),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }

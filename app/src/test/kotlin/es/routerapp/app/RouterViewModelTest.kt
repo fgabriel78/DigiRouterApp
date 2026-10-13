@@ -111,4 +111,27 @@ class RouterViewModelTest {
         assertEquals("saved_pass", vm.state.value.savedPassword)
         assertEquals("saved_pass", store.getSavedPassword())
     }
+
+    @Test
+    fun `fingerprints state flow is initialized with store fingerprints and updated on scan`() {
+        val metaPrefs = FakeSharedPreferences()
+        val metaStore = SharedPrefsDeviceMetadataStore(metaPrefs)
+        val fp = DeviceFingerprint(
+            exactModel = "PlayStation 5",
+            vendor = "Sony",
+            category = DeviceCategory.CONSOLE,
+            discoveryMethod = "UPnP",
+        )
+        metaStore.saveFingerprint("AA:BB:CC:DD:EE:99", fp)
+
+        val vm = RouterViewModel(
+            app = Application(),
+            credentialStore = FakeCredentialStore(null),
+            metadataStore = metaStore,
+            fingerprintScanner = NetworkFingerprintScanner(null, metaStore, multicastBurstMs = 0L),
+        )
+
+        assertEquals(1, vm.fingerprints.value.size)
+        assertEquals("PlayStation 5", vm.fingerprints.value["AA:BB:CC:DD:EE:99"]?.exactModel)
+    }
 }

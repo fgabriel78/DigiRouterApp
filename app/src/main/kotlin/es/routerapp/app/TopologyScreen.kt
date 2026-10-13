@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -95,6 +96,8 @@ fun TopologyScreen(
         metadataStore ?: SharedPrefsDeviceMetadataStore(context)
     }
     var metadataMap by remember(store) { mutableStateOf(store.getAll()) }
+    var fingerprintsMap by remember(store) { mutableStateOf(store.getAllFingerprints()) }
+    val scanner = remember(context, store) { NetworkFingerprintScanner(context, store) }
     var reloadKey by remember { mutableIntStateOf(0) }
     var inspectingNode by remember { mutableStateOf<MeshNode?>(null) }
     var inspectingDevice by remember { mutableStateOf<ConnectedDevice?>(null) }
@@ -132,6 +135,13 @@ fun TopologyScreen(
             else -> {
                 val connData = res.getOrThrow()
                 val devices = connData.devices
+                LaunchedEffect(devices) {
+                    if (devices.isNotEmpty()) {
+                        scanner.scanFlow(devices).collect { (mac, fp) ->
+                            fingerprintsMap = fingerprintsMap + (mac to fp)
+                        }
+                    }
+                }
                 val nodes = connData.nodes
 
                 val controller = nodes.firstOrNull { it.isController } ?: MeshNode(
@@ -226,6 +236,7 @@ fun TopologyScreen(
                         node = currentNode,
                         clients = nodeClients,
                         metadataMap = metadataMap,
+                        fingerprintsMap = fingerprintsMap,
                         onDismiss = { inspectingNode = null },
                         onClientClick = { dev -> inspectingDevice = dev },
                     )
@@ -235,9 +246,11 @@ fun TopologyScreen(
                 val currentDevice = inspectingDevice
                 if (currentDevice != null) {
                     val meta = metadataMap[currentDevice.mac.trim().uppercase()]
+                    val fp = fingerprintsMap[currentDevice.mac.trim().uppercase()]
                     DeviceDetailSheet(
                         device = currentDevice,
                         initialMetadata = meta,
+                        fingerprint = fp,
                         onDismiss = { inspectingDevice = null },
                         onSave = { updatedMeta ->
                             store.save(currentDevice.mac, updatedMeta)
@@ -564,6 +577,7 @@ fun NodeClientsBottomSheet(
     metadataMap: Map<String, DeviceCustomMetadata>,
     onDismiss: () -> Unit,
     onClientClick: (ConnectedDevice) -> Unit,
+    fingerprintsMap: Map<String, DeviceFingerprint> = emptyMap(),
     sheetState: SheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden),
 ) {
     val c = MaterialTheme.colorScheme
@@ -631,11 +645,13 @@ fun NodeClientsBottomSheet(
                 ) {
                     items(clients, key = { it.mac }) { device ->
                         val meta = metadataMap[device.mac.trim().uppercase()]
+                        val fp = fingerprintsMap[device.mac.trim().uppercase()]
                         val resolved = DeviceResolver.resolve(
                             mac = device.mac,
                             hostname = device.name,
                             ip = device.ip,
                             customMeta = meta,
+                            fingerprint = fp,
                         )
 
                         Card(
@@ -659,16 +675,47 @@ fun NodeClientsBottomSheet(
                                 )
 
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    Text(
-                                        text = resolved.displayTitle,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        Text(
+                                            text = resolved.displayTitle,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false),
+                                        )
+                                        if (resolved.vendorSource == VendorSource.DEEP_FINGERPRINT) {
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = c.primaryContainer,
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.CheckCircle,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(10.dp),
+                                                        tint = c.onPrimaryContainer,
+                                                    )
+                                                    Text(
+                                                        stringResource(R.string.device_fingerprint_badge),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = c.onPrimaryContainer,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                     val sub = buildList {
                                         if (device.ip.isNotEmpty()) add(device.ip)
-                                        if (resolved.vendor != null) add(resolved.vendor)
+                                        if (resolved.exactModel != null) add(resolved.exactModel)
+                                        else if (resolved.vendor != null) add(resolved.vendor)
                                     }.joinToString(" · ")
                                     Text(
                                         text = sub,

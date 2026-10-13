@@ -65,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -563,6 +564,12 @@ fun DevicesScreen(
     var metadataMap by remember(store) {
         mutableStateOf(store.getAll())
     }
+    var fingerprintsMap by remember(store) {
+        mutableStateOf(store.getAllFingerprints())
+    }
+    val scanner = remember(context, store) {
+        NetworkFingerprintScanner(context, store)
+    }
     var inspectingDevice by remember { mutableStateOf<ConnectedDevice?>(null) }
     var reloadKey by remember { mutableIntStateOf(0) }
     val snack = remember { SnackbarHostState() }
@@ -592,6 +599,13 @@ fun DevicesScreen(
             else -> {
                 val connData = res.getOrThrow()
                 val everyone = connData.devices
+                LaunchedEffect(everyone) {
+                    if (everyone.isNotEmpty()) {
+                        scanner.scanFlow(everyone).collect { (mac, fp) ->
+                            fingerprintsMap = fingerprintsMap + (mac to fp)
+                        }
+                    }
+                }
                 val nodes = connData.nodes
                 val active = everyone.filter { it.active }
                 val offline = everyone.filter { !it.active }
@@ -661,12 +675,14 @@ fun DevicesScreen(
                     if (list.isEmpty()) item { EmptyHint(stringResource(R.string.devices_none)) }
                     items(list) { d ->
                         val customMeta = metadataMap[d.mac.trim().uppercase()]
-                        val resolved = remember(d.mac, d.name, d.ip, customMeta) {
+                        val fp = fingerprintsMap[d.mac.trim().uppercase()]
+                        val resolved = remember(d.mac, d.name, d.ip, customMeta, fp) {
                             DeviceResolver.resolve(
                                 mac = d.mac,
                                 hostname = d.name,
                                 ip = d.ip,
                                 customMeta = customMeta,
+                                fingerprint = fp,
                             )
                         }
                         val title = resolved.displayTitle
@@ -698,7 +714,30 @@ fun DevicesScreen(
                                             overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.weight(1f, fill = false),
                                         )
-                                        if (resolved.vendor != null) {
+                                        if (resolved.vendorSource == VendorSource.DEEP_FINGERPRINT) {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = c.primaryContainer,
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.CheckCircle,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(11.dp),
+                                                        tint = c.onPrimaryContainer,
+                                                    )
+                                                    Text(
+                                                        stringResource(R.string.device_fingerprint_badge),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = c.onPrimaryContainer,
+                                                    )
+                                                }
+                                            }
+                                        } else if (resolved.vendor != null) {
                                             val isHeuristic = resolved.vendorSource == VendorSource.HOSTNAME_HEURISTIC
                                             Surface(
                                                 shape = RoundedCornerShape(6.dp),
@@ -748,9 +787,11 @@ fun DevicesScreen(
     val currentDevice = inspectingDevice
     if (currentDevice != null) {
         val meta = metadataMap[currentDevice.mac.trim().uppercase()]
+        val fp = fingerprintsMap[currentDevice.mac.trim().uppercase()]
         DeviceDetailSheet(
             device = currentDevice,
             initialMetadata = meta,
+            fingerprint = fp,
             onDismiss = { inspectingDevice = null },
             onSave = { updatedMeta ->
                 store.save(currentDevice.mac, updatedMeta)

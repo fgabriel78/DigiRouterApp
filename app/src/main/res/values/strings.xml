@@ -181,4 +181,10 @@
     <string name="security_dashboard_card_clean">Protected and secure</string>
     <string name="security_fix_success">Security setting updated</string>
     <string name="security_fix_failed">Failed to update security setting</string>
+    <!-- Deep Network Fingerprinting -->
+    <string name="device_fingerprint_badge">Verified</string>
+    <string name="device_fingerprint_source">Deep Network Fingerprint</string>
+    <string name="device_fingerprint_desc">Identified via local network discovery (%1$s)</string>
+    <string name="device_model_label">Hardware Model</string>
+    <string name="device_fingerprinting_status">Fingerprinting devices...</string>
 </resources>

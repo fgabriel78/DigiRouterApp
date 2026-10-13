@@ -76,4 +76,34 @@ class DeviceMetadataStoreTest {
         store.clear()
         assertTrue(store.getAll().isEmpty())
     }
+
+    @Test
+    fun `saveFingerprint and getFingerprint persists and isolates from custom metadata`() {
+        val fp = DeviceFingerprint(
+            exactModel = "PlayStation 5",
+            vendor = "Sony",
+            category = DeviceCategory.CONSOLE,
+            discoveryMethod = "UPnP",
+        )
+
+        store.saveFingerprint("AA:BB:CC:DD:EE:11", fp)
+
+        val retrieved = store.getFingerprint("aa:bb:cc:dd:ee:11")
+        assertNotNull(retrieved)
+        assertEquals("PlayStation 5", retrieved?.exactModel)
+        assertEquals("Sony", retrieved?.vendor)
+        assertEquals(DeviceCategory.CONSOLE, retrieved?.category)
+        assertEquals("UPnP", retrieved?.discoveryMethod)
+
+        // Ensure custom metadata getAll does not return fingerprint entries
+        val customAll = store.getAll()
+        assertTrue(customAll.isEmpty())
+
+        val fpAll = store.getAllFingerprints()
+        assertEquals(1, fpAll.size)
+        assertEquals("PlayStation 5", fpAll["AA:BB:CC:DD:EE:11"]?.exactModel)
+
+        store.resetFingerprint("AA:BB:CC:DD:EE:11")
+        assertNull(store.getFingerprint("AA:BB:CC:DD:EE:11"))
+    }
 }

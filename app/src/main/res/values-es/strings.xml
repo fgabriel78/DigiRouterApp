@@ -181,4 +181,10 @@
     <string name="security_dashboard_card_clean">Red protegida y segura</string>
     <string name="security_fix_success">Ajuste de seguridad actualizado</string>
     <string name="security_fix_failed">Error al actualizar el ajuste de seguridad</string>
+    <!-- Deep Network Fingerprinting -->
+    <string name="device_fingerprint_badge">Verificado</string>
+    <string name="device_fingerprint_source">Huella de red profunda</string>
+    <string name="device_fingerprint_desc">Identificado mediante descubrimiento local (%1$s)</string>
+    <string name="device_model_label">Modelo de hardware</string>
+    <string name="device_fingerprinting_status">Identificando dispositivos...</string>
 </resources>

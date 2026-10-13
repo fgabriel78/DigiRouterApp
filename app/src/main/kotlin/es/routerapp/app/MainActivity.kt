@@ -262,6 +262,7 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 engine = engine,
                 onBack = { pageId = null },
                 recovery = vm,
+                metadataStore = vm.metadataStore,
             )
             page == null -> HomeScreen(username, routerAddress, onOpen = { pageId = it.id }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(
@@ -275,6 +276,7 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 engine = engine,
                 onBack = { pageId = null },
                 recovery = vm,
+                metadataStore = vm.metadataStore,
                 onNavigateToTopology = { pageId = "topology" },
             )
             page.id == "speedtest" -> SpeedTestScreen(onBack = { pageId = null })

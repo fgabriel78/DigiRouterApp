@@ -43,8 +43,14 @@ interface RecoveryRunner {
 class RouterViewModel @JvmOverloads constructor(
     app: Application,
     private val credentialStore: CredentialStore = SecureCredentialStore(app),
+    metadataStore: DeviceMetadataStore? = null,
+    fingerprintScanner: NetworkFingerprintScanner? = null,
 ) : AndroidViewModel(app), RecoveryRunner {
     override suspend fun <T> run(block: suspend () -> T): T = executeWithRecovery(block)
+    val metadataStore: DeviceMetadataStore = metadataStore
+        ?: runCatching { SharedPrefsDeviceMetadataStore(app) }.getOrElse { InMemoryDeviceMetadataStore() }
+    val fingerprintScanner: NetworkFingerprintScanner = fingerprintScanner
+        ?: NetworkFingerprintScanner(app, this.metadataStore)
     private val initialSavedPassword = credentialStore.getSavedPassword() ?: ""
     private val _state = MutableStateFlow(
         UiState(
@@ -53,6 +59,29 @@ class RouterViewModel @JvmOverloads constructor(
         ),
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
+
+    private val _fingerprints = MutableStateFlow<Map<String, DeviceFingerprint>>(emptyMap())
+    val fingerprints: StateFlow<Map<String, DeviceFingerprint>> = _fingerprints.asStateFlow()
+
+    init {
+        runCatching {
+            _fingerprints.value = this.metadataStore.getAllFingerprints()
+        }
+    }
+
+    private var scanJob: kotlinx.coroutines.Job? = null
+
+    fun triggerDeviceScan(devices: List<es.routerapp.protocol.pages.ConnectedDevice>) {
+        if (devices.isEmpty()) return
+        scanJob?.cancel()
+        scanJob = viewModelScope.launch(Dispatchers.IO) {
+            fingerprintScanner.scanFlow(devices).collect { (mac, fp) ->
+                _fingerprints.update { current ->
+                    current + (mac to fp)
+                }
+            }
+        }
+    }
 
     @Volatile
     private var activePassword: String? = null
