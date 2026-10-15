@@ -45,12 +45,14 @@ class RouterViewModel @JvmOverloads constructor(
     private val credentialStore: CredentialStore = SecureCredentialStore(app),
     metadataStore: DeviceMetadataStore? = null,
     fingerprintScanner: NetworkFingerprintScanner? = null,
+    backupStore: BackupStore? = null,
 ) : AndroidViewModel(app), RecoveryRunner {
     override suspend fun <T> run(block: suspend () -> T): T = executeWithRecovery(block)
     val metadataStore: DeviceMetadataStore = metadataStore
         ?: runCatching { SharedPrefsDeviceMetadataStore(app) }.getOrElse { InMemoryDeviceMetadataStore() }
     val fingerprintScanner: NetworkFingerprintScanner = fingerprintScanner
         ?: NetworkFingerprintScanner(app, this.metadataStore)
+    val backupStore: BackupStore = backupStore ?: FileBackupStore(app)
     private val initialSavedPassword = credentialStore.getSavedPassword() ?: ""
     private val _state = MutableStateFlow(
         UiState(

@@ -268,5 +268,27 @@
     <string name="dual_verdict_inconclusive_title">Diagnostic Inconclusive</string>
     <string name="dual_verdict_inconclusive_desc">Could not collect sufficient metrics to isolate the bottleneck.</string>
     <string name="dual_verdict_inconclusive_advice">Ensure your mobile device is connected to the router\'s Wi-Fi and retry.</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_title">Backup &amp; Restore</string>
+    <string name="backup_hero_title">Create Router Backup</string>
+    <string name="backup_hero_desc">Save current settings to your phone before making critical changes.</string>
+    <string name="backup_btn_create">Create backup now</string>
+    <string name="backup_creating">Downloading configuration...</string>
+    <string name="backup_history_title">Stored backups (%1$d of %2$d)</string>
+    <string name="backup_history_empty">No backups saved yet</string>
+    <string name="backup_action_restore">Restore</string>
+    <string name="backup_action_share">Share</string>
+    <string name="backup_action_delete">Delete</string>
+    <string name="backup_delete_confirm_title">Delete backup?</string>
+    <string name="backup_delete_confirm_msg">Delete “%1$s”? This action cannot be undone.</string>
+    <string name="backup_restore_confirm_title">Restore configuration?</string>
+    <string name="backup_restore_confirm_msg">The router will restore the saved configuration and restart. You will lose network connectivity for 1-2 minutes. If the backup had different passwords, you must use them after rebooting. Continue?</string>
+    <string name="backup_reboot_title">Restoring and Rebooting</string>
+    <string name="backup_reboot_desc">Please wait while the router applies settings and restarts...</string>
+    <string name="backup_reboot_countdown">%1$d s remaining</string>
+    <string name="backup_reboot_reconnected">Router is back online! Please log in again.</string>
+    <string name="backup_reboot_timeout">Reboot wait time completed. Check your Wi-Fi connection.</string>
+    <string name="backup_reboot_close">Done</string>
 </resources>
 

@@ -268,5 +268,27 @@
     <string name="dual_verdict_inconclusive_title">Diagnóstico no concluyente</string>
     <string name="dual_verdict_inconclusive_desc">No se pudieron obtener métricas suficientes para aislar el problema.</string>
     <string name="dual_verdict_inconclusive_advice">Asegúrate de que tu móvil está conectado al Wi-Fi del router y vuelve a probar.</string>
+
+    <!-- Copia y restauración -->
+    <string name="backup_title">Copia y restauración</string>
+    <string name="backup_hero_title">Crear copia de seguridad</string>
+    <string name="backup_hero_desc">Guarda la configuración actual en tu teléfono antes de realizar cambios críticos.</string>
+    <string name="backup_btn_create">Crear copia ahora</string>
+    <string name="backup_creating">Descargando configuración...</string>
+    <string name="backup_history_title">Copias guardadas (%1$d de %2$d)</string>
+    <string name="backup_history_empty">No hay copias guardadas aún</string>
+    <string name="backup_action_restore">Restaurar</string>
+    <string name="backup_action_share">Compartir</string>
+    <string name="backup_action_delete">Eliminar</string>
+    <string name="backup_delete_confirm_title">¿Eliminar copia?</string>
+    <string name="backup_delete_confirm_msg">¿Eliminar «%1$s»? Esta acción no se puede deshacer.</string>
+    <string name="backup_restore_confirm_title">¿Restaurar configuración?</string>
+    <string name="backup_restore_confirm_msg">El router restaurará la configuración guardada y se reiniciará. Se interrumpirá la conexión durante 1-2 minutos. Si la copia tenía contraseñas distintas, deberás usarlas tras el reinicio. ¿Continuar?</string>
+    <string name="backup_reboot_title">Restaurando y reiniciando</string>
+    <string name="backup_reboot_desc">Por favor, espera mientras el router aplica los ajustes y se reinicia...</string>
+    <string name="backup_reboot_countdown">%1$d s restantes</string>
+    <string name="backup_reboot_reconnected">¡El router ha vuelto a estar disponible! Inicia sesión de nuevo.</string>
+    <string name="backup_reboot_timeout">Tiempo de espera completado. Comprueba tu conexión Wi-Fi.</string>
+    <string name="backup_reboot_close">Aceptar</string>
 </resources>
 

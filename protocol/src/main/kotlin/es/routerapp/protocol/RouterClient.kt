@@ -17,6 +17,7 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -103,6 +104,12 @@ class RouterClient(
             val text = resp.body.string()
             if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} for ${req.url.encodedPath}")
             text
+        }
+
+    private fun executeBytes(req: Request): ByteArray =
+        http.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} for ${req.url.encodedPath}")
+            resp.body.bytes()
         }
 
     // ---------------------------------------------------------------- unauthenticated
@@ -245,6 +252,74 @@ class RouterClient(
         return if (decrypt) runCatching { requireNotNull(crypto).aesDecryptBase64(text) }.getOrDefault(text) else text
     }
 
+    /**
+     * Resolves the backup configuration URL according to device model info from TR-181 (DEV2_DEV_INFO).
+     * Follows the algorithm from the router's `backNRestore.htm`.
+     */
+    fun resolveBackupPath(devInfo: Map<String, String>? = null, isAdmin: Boolean = true): String {
+        val info = devInfo ?: runCatching {
+            val data = get("DEV2_DEV_INFO")
+            (data as? JsonObject)?.mapValues { (_, v) -> (v as? JsonPrimitive)?.content ?: v.toString() }
+        }.getOrNull()
+
+        if (info == null) return "/cgi/conf.bin"
+
+        val modelName = info["modelName"]?.replace("\\s+".toRegex(), "") ?: ""
+        val fullVersion = info["X_TP_DevModelVersion"] ?: ""
+        val modelVersion = if (fullVersion.contains('.')) fullVersion.substringBefore('.') else fullVersion
+        val buildDate = info["X_TP_BuildDate"] ?: ""
+        val buildTime = info["X_TP_BuildTime"] ?: ""
+        val sign = "n"
+
+        if (modelName.isEmpty() || modelVersion.isEmpty() || buildDate.isEmpty() || buildTime.isEmpty()) {
+            return "/cgi/conf.bin"
+        }
+
+        var path = "/cgi/${modelName}V${modelVersion}${buildDate}${buildTime}${sign}"
+        if (!isAdmin) {
+            path += "_backupcfg"
+        }
+        path += ".bin"
+        return path
+    }
+
+    /** Downloads the current router configuration as a binary byte array. */
+    fun downloadBackup(): ByteArray {
+        val path = resolveBackupPath()
+        return try {
+            executeBytes(builder(path).get().build())
+        } catch (e: Exception) {
+            if (path != "/cgi/conf.bin") {
+                executeBytes(builder("/cgi/conf.bin").get().build())
+            } else {
+                throw e
+            }
+        }
+    }
+
+    /** Uploads a configuration binary to the router and triggers restoration and reboot. */
+    fun restoreBackup(data: ByteArray) {
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                name = "filename",
+                filename = "conf.bin",
+                body = data.toRequestBody(OCTET_STREAM)
+            )
+            .build()
+
+        val req = builder("/cgi/confup")
+            .post(multipartBody)
+            .build()
+
+        execute(req)
+
+        // Trigger configuration application and router reboot
+        runCatching {
+            cgi("/cgi/bnr")
+        }
+    }
+
     private fun postEncrypted(plain: String, isLogin: Boolean): String {
         val c = crypto ?: throw IllegalStateException("Not logged in")
         val body = c.encryptRequest(plain, isLogin).toRequestBody().toRequestBody(TEXT)
@@ -263,6 +338,7 @@ class RouterClient(
     companion object {
         const val DEFAULT_STACK = "0,0,0,0,0,0"
         private val TEXT = "text/plain".toMediaType()
+        private val OCTET_STREAM = "application/octet-stream".toMediaType()
         private const val USER_AGENT =
             "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
         private val TOKEN_REGEXES = listOf(

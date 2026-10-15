@@ -534,6 +534,9 @@ object Catalog {
     private val securityHealth = Page(id = "security-health", title = "Network Security", group = Group.SECURITY,
         description = "Security score, posture audit and 1-tap fixes", custom = true)
 
+    private val backup = Page(id = "backup", title = "Backup & restore", group = Group.SYSTEM,
+        description = "Save and restore configuration snapshots", custom = true)
+
     val pages: List<Page> = listOf(
         dashboard, devices, speedtest, fiberDiag, dualDiag,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
@@ -541,7 +544,7 @@ object Catalog {
         virtualServers, portTrigger, dmz, upnp, alg,
         securityHealth, security, arp,
         storage,
-        time, led, reboot, stats,
+        time, led, reboot, backup, stats,
     )
 
     fun visiblePages(username: String): List<Page> =

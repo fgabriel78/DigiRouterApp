@@ -205,5 +205,7 @@ object SpanishTexts {
         "Traffic statistics" to "Estadísticas de tráfico",
         "Statistics" to "Estadísticas",
         "Enable statistics" to "Activar estadísticas",
+        "Backup & restore" to "Copia y restauración",
+        "Save and restore configuration snapshots" to "Guardar y restaurar copias de configuración",
     )
 }

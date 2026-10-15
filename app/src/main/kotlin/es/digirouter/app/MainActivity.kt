@@ -297,6 +297,19 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 onNavigateToTopology = { navigateTo("topology") },
             )
             page.id == "speedtest" -> SpeedTestScreen(onBack = { navigateBack() })
+            page.id == "backup" -> BackupRestoreScreen(
+                viewModel = BackupRestoreViewModel(
+                    clientProvider = { vm.client },
+                    store = vm.backupStore,
+                    recoveryRunner = vm,
+                ),
+                store = vm.backupStore,
+                onBack = { navigateBack() },
+                onNavigateToLogin = {
+                    vm.logout()
+                    navigateBack()
+                },
+            )
             else -> GenericPageScreen(page, engine, onBack = { navigateBack() }, recovery = vm)
         }
     }
