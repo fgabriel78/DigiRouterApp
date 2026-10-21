@@ -21,6 +21,10 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import es.routerapp.protocol.log.LogEntry
+import es.routerapp.protocol.log.LogParser
+import es.routerapp.protocol.log.LogSeverity
+import es.routerapp.protocol.log.SyslogConfig
 import java.io.EOFException
 import java.io.IOException
 import java.net.SocketException
@@ -318,6 +322,46 @@ class RouterClient(
         runCatching {
             cgi("/cgi/bnr")
         }
+    }
+
+
+    /** Retrieves and decodes event entries from the router's system log buffer (/cgi/log). */
+    fun getSystemLogs(): List<LogEntry> {
+        val raw = rawGet("/cgi/log", decrypt = false)
+        return LogParser.parse(raw)
+    }
+
+    /** Clears the router's active system log circular buffer (/cgi/log?clr). */
+    fun clearSystemLogs(): Boolean {
+        val result = rawGet("/cgi/log?clr", decrypt = false)
+        return result.trim().startsWith("0") || result.isBlank()
+    }
+
+    /** Retrieves the router's internal syslog daemon configuration (DEV2_SYSLOG_CFG). */
+    fun getSyslogConfig(): SyslogConfig {
+        val elem = get("DEV2_SYSLOG_CFG")
+        val obj = (elem as? JsonObject) ?: return SyslogConfig()
+        val localSeverityCode = (obj["localSeverity"] as? JsonPrimitive)?.content?.toIntOrNull() ?: LogSeverity.INFO.code
+        val remoteSeverityCode = (obj["remoteSeverity"] as? JsonPrimitive)?.content?.toIntOrNull() ?: LogSeverity.INFO.code
+        val logToLocal = (obj["logToLocal"] as? JsonPrimitive)?.content == "1"
+        val logToRemote = (obj["logToRemote"] as? JsonPrimitive)?.content == "1"
+        val serverIp = (obj["serverIP"] as? JsonPrimitive)?.content ?: ""
+        val serverPort = (obj["serverPort"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 514
+        val facility = (obj["facility"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 1
+        return SyslogConfig(
+            logToLocal = logToLocal,
+            localSeverity = LogSeverity.fromCode(localSeverityCode),
+            logToRemote = logToRemote,
+            remoteSeverity = LogSeverity.fromCode(remoteSeverityCode),
+            serverIp = serverIp,
+            serverPort = serverPort,
+            facility = facility,
+        )
+    }
+
+    /** Updates the router's local syslog minimum severity threshold (DEV2_SYSLOG_CFG). */
+    fun setLocalSeverity(level: LogSeverity): JsonElement {
+        return set("DEV2_SYSLOG_CFG", mapOf("localSeverity" to level.code.toString()))
     }
 
     private fun postEncrypted(plain: String, isLogin: Boolean): String {

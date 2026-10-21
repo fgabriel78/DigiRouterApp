@@ -207,5 +207,7 @@ object SpanishTexts {
         "Enable statistics" to "Activar estadísticas",
         "Backup & restore" to "Copia y restauración",
         "Save and restore configuration snapshots" to "Guardar y restaurar copias de configuración",
+        "System Log" to "Registro del sistema",
+        "Live router events, diagnostic traces and syslog sensitivity" to "Eventos en directo del router, trazas y sensibilidad de syslog",
     )
 }

@@ -290,5 +290,31 @@
     <string name="backup_reboot_reconnected">¡El router ha vuelto a estar disponible! Inicia sesión de nuevo.</string>
     <string name="backup_reboot_timeout">Tiempo de espera completado. Comprueba tu conexión Wi-Fi.</string>
     <string name="backup_reboot_close">Aceptar</string>
+    <!-- Registro del sistema -->
+    <string name="page_system_log">Registro del sistema</string>
+    <string name="page_system_log_desc">Eventos en directo del router, trazas y sensibilidad de syslog</string>
+    <string name="log_title">Registro del sistema</string>
+    <string name="log_subtitle">Flujo de eventos en directo del router</string>
+    <string name="log_live_active">EN VIVO</string>
+    <string name="log_live_paused">PAUSADO</string>
+    <string name="log_search_hint">Buscar registros, módulos, marcas de tiempo...</string>
+    <string name="log_filter_all">Todos</string>
+    <string name="log_filter_errors">Errores</string>
+    <string name="log_filter_warnings">Avisos</string>
+    <string name="log_filter_info">Información</string>
+    <string name="log_filter_debug">Depuración</string>
+    <string name="log_module_all">Todos los módulos</string>
+    <string name="log_empty_title">Sin eventos de registro</string>
+    <string name="log_empty_desc">No hay entradas que coincidan con el filtro o el búfer está vacío</string>
+    <string name="log_clear_btn">Vaciar</string>
+    <string name="log_clear_confirm_title">¿Vaciar búfer de registros?</string>
+    <string name="log_clear_confirm_msg">Se borrarán los registros de eventos almacenados en la memoria del router. Esta acción no se puede deshacer.</string>
+    <string name="log_copied">Copiado al portapapeles</string>
+    <string name="log_share_title">Compartir registros del sistema</string>
+    <string name="log_settings_title">Sensibilidad de Syslog</string>
+    <string name="log_settings_desc">Configura el nivel mínimo de registro guardado por el router.</string>
+    <string name="log_settings_save">Guardar sensibilidad</string>
+    <string name="log_settings_saving">Guardando...</string>
+    <string name="log_settings_success">Sensibilidad de registro actualizada</string>
 </resources>
 

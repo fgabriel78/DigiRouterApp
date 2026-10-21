@@ -290,5 +290,31 @@
     <string name="backup_reboot_reconnected">Router is back online! Please log in again.</string>
     <string name="backup_reboot_timeout">Reboot wait time completed. Check your Wi-Fi connection.</string>
     <string name="backup_reboot_close">Done</string>
+    <!-- System Log Stream -->
+    <string name="page_system_log">System Log</string>
+    <string name="page_system_log_desc">Live router events, diagnostic traces and syslog sensitivity</string>
+    <string name="log_title">System Log</string>
+    <string name="log_subtitle">Live router event stream</string>
+    <string name="log_live_active">LIVE</string>
+    <string name="log_live_paused">PAUSED</string>
+    <string name="log_search_hint">Search logs, modules, timestamps...</string>
+    <string name="log_filter_all">All</string>
+    <string name="log_filter_errors">Errors</string>
+    <string name="log_filter_warnings">Warnings</string>
+    <string name="log_filter_info">Info</string>
+    <string name="log_filter_debug">Debug</string>
+    <string name="log_module_all">All Modules</string>
+    <string name="log_empty_title">No log events</string>
+    <string name="log_empty_desc">No entries match your filter or buffer is empty</string>
+    <string name="log_clear_btn">Clear</string>
+    <string name="log_clear_confirm_title">Clear router log buffer?</string>
+    <string name="log_clear_confirm_msg">This will clear the current event logs stored in the router\'s memory. This action cannot be undone.</string>
+    <string name="log_copied">Copied to clipboard</string>
+    <string name="log_share_title">Share System Logs</string>
+    <string name="log_settings_title">Syslog Sensitivity</string>
+    <string name="log_settings_desc">Configure the minimum log level saved by the router.</string>
+    <string name="log_settings_save">Save Sensitivity</string>
+    <string name="log_settings_saving">Saving...</string>
+    <string name="log_settings_success">Log sensitivity updated</string>
 </resources>
 
