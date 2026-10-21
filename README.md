@@ -9,24 +9,49 @@ The app talks directly to the router, reproducing the encrypted protocol used by
 
 ## What it can do
 
-With the router's `user` account (the only one the operator hands out to customers), these screens are available:
+The app supports both the standard **`user`** account and the advanced **`admin`** account, dynamically adapting available screens based on credentials:
 
-| Group | Screens |
-|---|---|
-| **Status** | Summary (Internet status, public IP, uptime, traffic, Wi-Fi networks) · Connected devices (filters: active, Wi-Fi, cable, disconnected) · Speed test (Wi-Fi download, upload, ping, and jitter benchmark) |
-| **Wi-Fi** | Main network (SSID, password, security) and Wi-Fi 7 MLO · Radio settings (mode, channel width, channel, power) · Advanced Wi-Fi (beamforming, MU-MIMO, OFDMA, TWT…, band steering) · WPS · Guest network · Additional networks (multi-SSID) |
-| **Local network** | LAN and DHCP server · DHCP reservations · Dynamic DNS (DynDNS, No-IP) |
-| **Ports and NAT** | Virtual servers (port forwarding) · Port triggering · DMZ · UPnP · ALG |
-| **Security** | DoS protection · IP-MAC binding (ARP) |
-| **USB and storage** | Samba, FTP and DLNA |
-| **System** | Date and time · LEDs (with night schedule) · Scheduled and immediate reboot · Traffic statistics |
+| Group | Screens | Mode |
+|---|---|---|
+| **Status** | Summary (Internet status, public IP, uptime, traffic, Wi-Fi networks) · Connected devices (filters: active, Wi-Fi, cable, disconnected; EasyMesh topology explorer with backhaul link rates & RSSI; device aliases & vendor OUI fingerprinting) · Speed test (Wi-Fi download, upload, ping, and jitter benchmark) · Wi-Fi QR Code sharing | User & Admin |
+| **Assistant** | Fiber Diagnostics (optical Rx/Tx power, temperature, voltage, layered connectivity tests) · Dual Diagnostic (router hardware ping vs mobile Wi-Fi ping comparison to isolate local interference) | User & Admin |
+| **Wi-Fi** | Main network (SSID, password, security) and Wi-Fi 7 MLO · Radio settings (mode, channel width, channel, power) · Advanced Wi-Fi (beamforming, MU-MIMO, OFDMA, TWT…, band steering) · WPS · Guest network · Additional networks (multi-SSID) | User & Admin |
+| **Local network** | LAN and DHCP server · DHCP reservations · Dynamic DNS (DynDNS, No-IP) · **Intelligent QoS** (bandwidth caps, coupled 5% queue sliders, device prioritization, Game Port detection) | User / **Admin Only** (QoS) |
+| **Ports and NAT** | Virtual servers (port forwarding) · Port triggering · DMZ · UPnP · ALG | User & Admin |
+| **Security** | Security Health Score (posture audit & 1-tap quick fixes) · **Parental Controls** (child profiles, screen time quotas, bedtimes, category & URL filtering, web insights) · DoS protection · IP-MAC binding (ARP) | User / **Admin Only** (Parental) |
+| **USB and storage** | Samba, FTP and DLNA | User & Admin |
+| **System** | Date and time · LEDs (with night schedule) · Scheduled and immediate reboot · Local backup & restore (5-slot encrypted FIFO snapshots) · **System Log** (live encrypted event stream, severity filters, syslog sensitivity) · Traffic statistics | User / **Admin Only** (Log) |
 
 Changes are sent the same way the router's web UI does, with only the modified fields. Sensitive operations (changing the SSID, the router IP, DMZ, FTP access from the Internet, rebooting…) ask for confirmation.
 
+### Administrator Features (`admin` mode)
+
+When logging in with the router's `admin` credentials, the app unlocks dedicated advanced management screens:
+
+1. **Intelligent QoS & Bandwidth Prioritization (`DEV2_IQOS`)**:
+   - Master QoS engine toggle with configurable upstream and downstream bandwidth caps (`Mbps` / `Kbps`).
+   - Coupled priority queue allocation sliders (High, Middle, Low) enforcing 5% step constraints (`High >= 15%`, `Middle >= 10%`, `Low >= 5%`, `High > Middle > Low`, total `<= 100%`).
+   - Live client device prioritization: joins active LAN/Wi-Fi devices and custom aliases to assign individual devices to High (`4`), Middle (`3`, default), or Low (`2`) priority.
+   - Hardware Game Port client detection (`DEV2_GAME_QOS_CLIENT`) with pinned High Priority and graceful degradation on unsupported firmware.
+2. **Parental Controls & Screen Time Insights (`DEV2_PARENTAL_CONTROL`)**:
+   - Family profile management with member client device assignment.
+   - Screen time limits & bedtime schedules: distinct weekday vs weekend allowances and instant Internet pause.
+   - Content filtering: category toggles (Adult, Gambling, Social, Video/Streaming) and custom domain whitelists / blacklists.
+   - Web activity insights: top visited domains and DNS query analytics per profile.
+3. **Live System Log Stream & Syslog Sensitivity (`DEV2_PAGE_ACCESS_PERMISSION`)**:
+   - Real-time encrypted event stream with live polling and search/filter across log messages and process tags.
+   - Severity level filtering (Emergency, Alert, Critical, Error, Warning, Notice, Info, Debug).
+   - Syslog daemon sensitivity level configuration.
+   - One-tap export to clipboard or Android system share sheet.
+
 ### What is not included
 
-- Pages the router only shows to the `admin` user (WAN, Ethernet WAN/PON, routes, QoS, VPN, firmware, logs, advanced voice, USB 3G). They are listed in the router feature inventory: [`docs/router_features.md`](docs/router_features.md) (English) / [`docs/router_features.es.md`](docs/router_features.es.md) (Spanish).
-- Parental control, configuration backup/restore and factory reset.
+- Advanced WAN uplink & physical media switching (Ethernet WAN vs GPON/XGS-PON).
+- Static routing tables and RIP routing protocols (`route.htm`, `rip.htm`).
+- Built-in VPN server configurations (OpenVPN, PPTP, IPSec servers).
+- Firmware image flashing (`softup.htm`) and TR-069 remote ACS management.
+- Advanced VoIP PBX telephony and USB 3G cellular fallback.
+- Factory reset (`ACT_FACTORY_RESET` is intentionally omitted to prevent accidental loss of operator provisioning).
 - Languages other than English and Spanish (see [Languages](#languages) to add one).
 
 ## Languages
@@ -143,13 +168,15 @@ This runs unit tests across both modules (`:protocol:test` for cryptographic vec
 ## Usage
 
 1. Connect the phone to the router's network.
-2. Open the app and enter the router address (`192.168.1.1` by default), the user (`user`) and its password.
-3. Navigate using the tiles on the home screen.
+2. Open the app and enter the router address (`192.168.1.1` by default), the username (`user` for standard access or `admin` for advanced management), and the password.
+3. Optionally check **Remember password** to securely save credentials encrypted in Android KeyStore (`EncryptedSharedPreferences`).
+4. Navigate using the expressive bento tiles and category containers on the home screen.
 
 Notes:
 
 - The router **only allows one administration session at a time**. If you have the router's web page open in a browser, close it first; logging in from the app will end any other session.
-- The password is **not stored** on the device; you have to type it at every login.
+- With **Remember password** enabled, credentials are encrypted locally with hardware-backed keys. If disabled, credentials remain strictly ephemeral in memory.
+- The app supports **automatic session recovery** to restore your authenticated session seamlessly after backgrounding or transient network interruptions.
 - It works **only from the local network**. It does not expose or modify the operator's remote access.
 
 ## Architecture
@@ -163,9 +190,13 @@ DigiRouterApp
 │   ├── RouterClient.kt   Login, session token and go/gl/so/ao/do/op operations
 │   ├── pages/            Declarative screen catalog (Catalog.kt),
 │   │                     field specification (Spec.kt) and engine (PageEngine.kt)
+│   ├── qos/              Intelligent QoS data models and engine (QosEngine.kt)
+│   ├── parental/         Parental control rules, schedules and analytics (ParentalControlEngine.kt)
+│   ├── sysdiagnostics/   Optical fiber and dual ping diagnostic engine
 │   └── discovery/        Command-line tools (see tools/README.md)
 ├── app/        Android app (Jetpack Compose, Material 3 Expressive)
-│   └── ...               Login, home, "Summary" and "Devices" screens
+│   └── ...               Login, dashboard, devices, speed test, fiber & dual diagnostics,
+│                         security health score, QoS, parental controls, system log, backup,
 │                         and a generic form renderer
 ├── docs/       Router feature inventory (router_features.md, router_features.es.md)
 └── tools/      Documentation for the discovery and testing tools
@@ -201,18 +232,18 @@ Almost every screen is described in [`Catalog.kt`](protocol/src/main/kotlin/es/r
 
 ## Main dependencies
 
-Kotlin 2.4, Android Gradle Plugin 9.4, Jetpack Compose (BOM 2026.09), **Material 3 `1.5.0-alpha29`**, OkHttp 5.5, kotlinx.serialization and kotlinx.coroutines.
+Kotlin 2.4, Android Gradle Plugin 9.4, Jetpack Compose (BOM 2026.09), **Material 3 `1.5.0-beta02`**, OkHttp 5.5, kotlinx.serialization and kotlinx.coroutines.
 
 > [!NOTE]
-> Material 3 is used in its alpha version because the *Expressive* components (large top app bars, loading indicator, shapes) are only public there. The version is pinned in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
+> Material 3 is tracked via its 1.5.0 beta release line (`1.5.0-beta02`) because the *Expressive* design system components (morphing shapes, bento containers, expressive top bars, connected sliders) are actively developed in this track. The version is pinned in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
 
 ## Contributing
 
 Contributions are welcome, especially:
 
 - Testing with other TP-Link or DIGI router models and firmware versions.
-- The missing screens (parental control, backup…).
 - Translations into other languages (see [Languages](#languages)).
+- Feature improvements and optimizations for diagnostics or device discovery.
 
 Open an [issue](https://github.com/fgabriel78/DigiRouterApp/issues) to discuss the change before sending a large pull request, and check with `:protocol:test` and `:protocol:pagesCheck` that everything still works.
 
