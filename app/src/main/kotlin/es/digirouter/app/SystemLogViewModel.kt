@@ -113,7 +113,7 @@ class SystemLogViewModel(
                     errorMessage = null,
                 )
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to fetch logs") }
         }
     }
@@ -128,7 +128,7 @@ class SystemLogViewModel(
                     }
                 }
                 _state.update { it.copy(syslogConfig = config) }
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
                 // Non-critical, ignore or keep existing config
             }
         }

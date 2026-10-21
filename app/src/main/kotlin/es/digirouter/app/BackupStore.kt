@@ -72,9 +72,14 @@ class FileBackupStore(
 
     @Synchronized
     override fun saveBackup(data: ByteArray, deviceModel: String, firmwareVersion: String): BackupItem {
-        val now = System.currentTimeMillis()
-        val filename = "backup_${now}.bin"
-        val targetFile = File(directory, filename)
+        var now = System.currentTimeMillis()
+        var targetFile = File(directory, "backup_${now}.bin")
+        while (targetFile.exists()) {
+            Thread.sleep(2)
+            now = System.currentTimeMillis()
+            targetFile = File(directory, "backup_${now}.bin")
+        }
+        val filename = targetFile.name
         targetFile.writeBytes(data)
 
         val newItem = BackupItem(

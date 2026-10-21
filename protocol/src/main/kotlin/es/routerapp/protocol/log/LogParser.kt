@@ -12,7 +12,7 @@ package es.routerapp.protocol.log
  */
 object LogParser {
 
-    private val LOG_LINE_REGEX = Regex("""^([\d-]+\s[\d:]+)\s+\[(\d)\]\s+(\w+):\s+(.*)$""")
+    private val LOG_LINE_REGEX = Regex("""^([\d-]+\s+[\d:]+)\s+\[(\d)\]\s+([\w.-]+):\s*(.*)$""")
 
     /**
      * Parses the raw string returned by `GET /cgi/log`.
@@ -36,18 +36,28 @@ object LogParser {
         }
 
         val entries = mutableListOf<LogEntry>()
+        val seenCounts = mutableMapOf<String, Int>()
+
         // Process remaining lines (skipping the status code at index 0)
         for (i in 1 until lines.size) {
             val line = lines[i]
             val match = LOG_LINE_REGEX.find(line) ?: continue
             val (timestamp, severityStr, module, message) = match.destructured
             val code = severityStr.toIntOrNull() ?: LogSeverity.INFO.code
+            val cleanModule = module.uppercase()
+            val cleanMessage = message.trim()
+            val baseKey = "$timestamp-$cleanModule-$cleanMessage"
+            val count = seenCounts.getOrDefault(baseKey, 0)
+            seenCounts[baseKey] = count + 1
+            val uniqueId = if (count == 0) baseKey else "$baseKey#$count"
+
             entries.add(
                 LogEntry(
                     timestamp = timestamp,
                     severity = LogSeverity.fromCode(code),
-                    module = module.uppercase(),
-                    message = message.trim(),
+                    module = cleanModule,
+                    message = cleanMessage,
+                    id = uniqueId,
                 )
             )
         }

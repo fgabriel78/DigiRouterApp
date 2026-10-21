@@ -317,13 +317,18 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                     navigateBack()
                 },
             )
-            page.id == "system-log" -> SystemLogScreen(
-                viewModel = SystemLogViewModel(
-                    clientProvider = { vm.client },
-                    recoveryRunner = vm,
-                ),
-                onBack = { navigateBack() },
-            )
+            id == "system-log" || page.id == "system-log" -> {
+                val systemLogVm = remember(vm) {
+                    SystemLogViewModel(
+                        clientProvider = { vm.client },
+                        recoveryRunner = vm,
+                    )
+                }
+                SystemLogScreen(
+                    viewModel = systemLogVm,
+                    onBack = { navigateBack() },
+                )
+            }
             else -> GenericPageScreen(page, engine, onBack = { navigateBack() }, recovery = vm)
         }
     }

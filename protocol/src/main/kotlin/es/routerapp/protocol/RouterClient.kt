@@ -84,7 +84,7 @@ class RouterClient(
      */
     fun isSessionOrStreamFailure(t: Throwable): Boolean = Companion.isSessionOrStreamFailure(t)
 
-    private var crypto: GdprCrypto? = null
+    internal var crypto: GdprCrypto? = null
 
     /** Value of the `TokenID` header; "0" before login. Updated by [login] when the router provides one. */
     @Volatile
@@ -327,7 +327,7 @@ class RouterClient(
 
     /** Retrieves and decodes event entries from the router's system log buffer (/cgi/log). */
     fun getSystemLogs(): List<LogEntry> {
-        val raw = rawGet("/cgi/log", decrypt = false)
+        val raw = rawGet("/cgi/log", decrypt = true)
         return LogParser.parse(raw)
     }
 

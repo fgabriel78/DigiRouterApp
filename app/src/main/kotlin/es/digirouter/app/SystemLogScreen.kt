@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +63,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,6 +98,12 @@ fun SystemLogScreen(
 
     var showClearDialog by remember { mutableStateOf(false) }
     var showSensitivitySheet by remember { mutableStateOf(false) }
+
+    DisposableEffect(viewModel) {
+        onDispose {
+            viewModel.pausePolling()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -255,7 +263,7 @@ fun SystemLogScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(state.filteredLogs, key = { it.id }) { entry ->
+                    itemsIndexed(state.filteredLogs, key = { index, item -> "${item.id}_$index" }) { _, entry ->
                         LogEntryCard(
                             entry = entry,
                             onCopy = {
