@@ -383,5 +383,44 @@
     <string name="parental_insights_date_2d">2 Days Ago</string>
     <string name="parental_action_unblock">Unblock</string>
     <string name="parental_status_unblocked">Allowed</string>
+
+    <!-- Intelligent QoS -->
+    <string name="qos_title">Intelligent QoS</string>
+    <string name="qos_engine_title">QoS engine</string>
+    <string name="qos_engine_subtitle">Protect latency-sensitive devices when your connection is saturated</string>
+    <string name="qos_disabled_hint">QoS is off. Device priorities are kept but not applied until you turn it on.</string>
+    <string name="qos_bandwidth_title">Bandwidth caps</string>
+    <string name="qos_bandwidth_hint">Use values slightly below your real line speed so the router controls the queues.</string>
+    <string name="qos_download">Download</string>
+    <string name="qos_upload">Upload</string>
+    <string name="qos_bandwidth_error">Enter a value between %1$d and %2$d</string>
+    <string name="qos_queues_title">Priority queues</string>
+    <string name="qos_queues_total">Allocated: %1$d%%</string>
+    <string name="qos_queues_hint">High must be above Middle, and Middle above Low. Steps of 5%.</string>
+    <string name="qos_queue_share">↓ %1$s · ↑ %2$s</string>
+    <string name="qos_queue_invalid">Queue percentages are not valid</string>
+    <string name="qos_priority_high">High</string>
+    <string name="qos_priority_middle">Middle</string>
+    <string name="qos_priority_low">Low</string>
+    <string name="qos_save">Save settings</string>
+    <string name="qos_saved">QoS settings saved</string>
+    <string name="qos_unsaved">You have unsaved changes</string>
+    <string name="qos_devices_title">Device prioritization</string>
+    <string name="qos_devices_subtitle">Devices without a rule use Middle priority</string>
+    <string name="qos_devices_empty">No devices found</string>
+    <string name="qos_device_offline">Offline</string>
+    <string name="qos_device_game_port">Game Port · always High</string>
+    <string name="qos_game_port_locked">Devices on the Game Port always have High priority</string>
+    <string name="qos_other_rules_title">Other rules</string>
+    <string name="qos_other_rules_subtitle">Created from the router web interface</string>
+    <string name="qos_rule_port">%1$s · port %2$s</string>
+    <string name="qos_rule_system">System application</string>
+    <string name="qos_rule_unknown">Rule type %1$d</string>
+    <string name="qos_rule_delete">Delete rule</string>
+    <string name="qos_error_not_connected">Router not connected</string>
+    <string name="qos_error_load">Could not load the QoS settings</string>
+    <string name="qos_error_save">Could not save the QoS settings</string>
+    <string name="qos_error_priority">Could not change the device priority</string>
+    <string name="qos_error_delete">Could not delete the rule</string>
 </resources>
 

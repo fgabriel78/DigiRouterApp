@@ -5,7 +5,8 @@ import es.routerapp.protocol.i18n.tr
 /**
  * Catalog of every configuration screen implemented in the app. Attribute names come from live reads
  * of the TP-Link XGB430v Pro (DIGI). Only pages visible to the `user` role are included; admin-only
- * pages (WAN, QoS, VPN, firmware, logs...) are intentionally absent.
+ * pages (WAN, VPN, firmware...) are intentionally absent; the few admin features that are offered
+ * (parental controls, QoS, system log) are custom screens marked `adminOnly`.
  *
  * All user-visible texts are English source texts. The UI translates them with [tr] when it draws them
  * (see `SpanishTexts`), so a text added here must also be added to the dictionaries.
@@ -536,6 +537,9 @@ object Catalog {
     private val parentalControl = Page(id = "parental-control", title = "Parental Controls", group = Group.SECURITY,
         description = "Profiles, screen time quotas, content filtering and web insights", custom = true, adminOnly = true)
 
+    private val qos = Page(id = "qos", title = "Intelligent QoS", group = Group.NETWORK,
+        description = "Bandwidth caps, priority queues and device prioritization", custom = true, adminOnly = true)
+
     private val backup = Page(id = "backup", title = "Backup & restore", group = Group.SYSTEM,
         description = "Save and restore configuration snapshots", custom = true)
     private val systemLog = Page(id = "system-log", title = "System Log", group = Group.SYSTEM,
@@ -544,7 +548,7 @@ object Catalog {
     val pages: List<Page> = listOf(
         dashboard, devices, speedtest, fiberDiag, dualDiag,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
-        lan, dhcpReservations, ddns,
+        lan, dhcpReservations, ddns, qos,
         virtualServers, portTrigger, dmz, upnp, alg,
         securityHealth, parentalControl, security, arp,
         storage,

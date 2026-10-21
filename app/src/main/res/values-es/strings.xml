@@ -383,5 +383,44 @@
     <string name="parental_insights_date_2d">Hace 2 días</string>
     <string name="parental_action_unblock">Desbloquear</string>
     <string name="parental_status_unblocked">Permitido</string>
+
+    <!-- QoS inteligente -->
+    <string name="qos_title">QoS inteligente</string>
+    <string name="qos_engine_title">Motor QoS</string>
+    <string name="qos_engine_subtitle">Protege los dispositivos sensibles a la latencia cuando la conexión está saturada</string>
+    <string name="qos_disabled_hint">QoS está desactivado. Las prioridades se conservan, pero no se aplican hasta que lo actives.</string>
+    <string name="qos_bandwidth_title">Límites de ancho de banda</string>
+    <string name="qos_bandwidth_hint">Usa valores algo inferiores a la velocidad real de tu línea para que el router controle las colas.</string>
+    <string name="qos_download">Descarga</string>
+    <string name="qos_upload">Subida</string>
+    <string name="qos_bandwidth_error">Introduce un valor entre %1$d y %2$d</string>
+    <string name="qos_queues_title">Colas de prioridad</string>
+    <string name="qos_queues_total">Asignado: %1$d%%</string>
+    <string name="qos_queues_hint">Alta debe ser mayor que Media, y Media mayor que Baja. Pasos del 5%.</string>
+    <string name="qos_queue_share">↓ %1$s · ↑ %2$s</string>
+    <string name="qos_queue_invalid">Los porcentajes de las colas no son válidos</string>
+    <string name="qos_priority_high">Alta</string>
+    <string name="qos_priority_middle">Media</string>
+    <string name="qos_priority_low">Baja</string>
+    <string name="qos_save">Guardar ajustes</string>
+    <string name="qos_saved">Ajustes de QoS guardados</string>
+    <string name="qos_unsaved">Tienes cambios sin guardar</string>
+    <string name="qos_devices_title">Prioridad por dispositivo</string>
+    <string name="qos_devices_subtitle">Los dispositivos sin regla usan prioridad Media</string>
+    <string name="qos_devices_empty">No se encontraron dispositivos</string>
+    <string name="qos_device_offline">Desconectado</string>
+    <string name="qos_device_game_port">Puerto Gaming · siempre Alta</string>
+    <string name="qos_game_port_locked">Los dispositivos del puerto Gaming siempre tienen prioridad Alta</string>
+    <string name="qos_other_rules_title">Otras reglas</string>
+    <string name="qos_other_rules_subtitle">Creadas desde la interfaz web del router</string>
+    <string name="qos_rule_port">%1$s · puerto %2$s</string>
+    <string name="qos_rule_system">Aplicación del sistema</string>
+    <string name="qos_rule_unknown">Regla de tipo %1$d</string>
+    <string name="qos_rule_delete">Eliminar regla</string>
+    <string name="qos_error_not_connected">Router no conectado</string>
+    <string name="qos_error_load">No se pudieron cargar los ajustes de QoS</string>
+    <string name="qos_error_save">No se pudieron guardar los ajustes de QoS</string>
+    <string name="qos_error_priority">No se pudo cambiar la prioridad del dispositivo</string>
+    <string name="qos_error_delete">No se pudo eliminar la regla</string>
 </resources>
 

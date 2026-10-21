@@ -288,6 +288,16 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 recovery = vm,
                 metadataStore = vm.metadataStore,
             )
+            id == "qos" || page?.id == "qos" -> {
+                val qosVm = remember(vm) {
+                    QosViewModel(
+                        clientProvider = { vm.client },
+                        metadataStore = vm.metadataStore,
+                        recoveryRunner = vm,
+                    )
+                }
+                QosScreen(viewModel = qosVm, onBack = { navigateBack() })
+            }
             page == null -> HomeScreen(username, routerAddress, onOpen = { navigateTo(it.id) }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(
                 engine = engine,

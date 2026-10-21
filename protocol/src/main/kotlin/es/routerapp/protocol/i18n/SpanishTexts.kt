@@ -65,6 +65,8 @@ object SpanishTexts {
         "Security score, posture audit and 1-tap fixes" to "Puntuación de seguridad, auditoría y correcciones en 1 toque",
         "Parental Controls" to "Control parental",
         "Profiles, screen time quotas, content filtering and web insights" to "Perfiles, límites de tiempo, filtrado de contenido y estadísticas",
+        "Intelligent QoS" to "QoS inteligente",
+        "Bandwidth caps, priority queues and device prioritization" to "Límites de ancho de banda, colas de prioridad y prioridad por dispositivo",
 
         // Wi-Fi
         "Main Wi-Fi" to "Wi-Fi principal",
