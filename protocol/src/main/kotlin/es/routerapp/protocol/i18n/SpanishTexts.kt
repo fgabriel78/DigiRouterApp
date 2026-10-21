@@ -63,6 +63,8 @@ object SpanishTexts {
         "Router hardware ping vs mobile Wi-Fi latency comparison" to "Comparación de latencia entre hardware del router y Wi-Fi del móvil",
         "Network Security" to "Seguridad de la red",
         "Security score, posture audit and 1-tap fixes" to "Puntuación de seguridad, auditoría y correcciones en 1 toque",
+        "Parental Controls" to "Control parental",
+        "Profiles, screen time quotas, content filtering and web insights" to "Perfiles, límites de tiempo, filtrado de contenido y estadísticas",
 
         // Wi-Fi
         "Main Wi-Fi" to "Wi-Fi principal",

@@ -262,6 +262,13 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
     ) { id ->
         val page = id?.let { Catalog.byId(it) }
         when {
+            id == "parental-control" || page?.id == "parental-control" -> ParentalControlScreen(
+                viewModel = ParentalControlViewModel(
+                    clientProvider = { vm.client },
+                    recoveryRunner = vm,
+                ),
+                onBack = { navigateBack() },
+            )
             id == "security-health" || page?.id == "security-health" -> SecurityHealthScreen(
                 viewModel = SecurityHealthViewModel(clientProvider = { vm.client }, recoveryRunner = vm),
                 onBack = { navigateBack() },

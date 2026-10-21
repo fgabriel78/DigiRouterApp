@@ -533,6 +533,8 @@ object Catalog {
         description = "Router hardware ping vs mobile Wi-Fi latency comparison", custom = true)
     private val securityHealth = Page(id = "security-health", title = "Network Security", group = Group.SECURITY,
         description = "Security score, posture audit and 1-tap fixes", custom = true)
+    private val parentalControl = Page(id = "parental-control", title = "Parental Controls", group = Group.SECURITY,
+        description = "Profiles, screen time quotas, content filtering and web insights", custom = true, adminOnly = true)
 
     private val backup = Page(id = "backup", title = "Backup & restore", group = Group.SYSTEM,
         description = "Save and restore configuration snapshots", custom = true)
@@ -544,7 +546,7 @@ object Catalog {
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
         lan, dhcpReservations, ddns,
         virtualServers, portTrigger, dmz, upnp, alg,
-        securityHealth, security, arp,
+        securityHealth, parentalControl, security, arp,
         storage,
         time, led, reboot, backup, systemLog, stats,
     )
