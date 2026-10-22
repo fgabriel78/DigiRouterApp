@@ -13,6 +13,7 @@ class FiberDiagnosticEngineTest {
 
     private class FakeTelemetrySource(
         private val oids: Map<String, Any>,
+        val ops: MutableList<Pair<String, String>> = mutableListOf(),
     ) : RouterTelemetrySource {
         @Suppress("UNCHECKED_CAST")
         override suspend fun getList(oid: String): List<Map<String, String>> =
@@ -21,6 +22,14 @@ class FiberDiagnosticEngineTest {
         @Suppress("UNCHECKED_CAST")
         override suspend fun get(oid: String): Map<String, String> =
             (oids[oid] as? Map<String, String>).orEmpty()
+
+        override suspend fun get(oid: String, stack: String): Map<String, String> =
+            get(oid)
+
+        override suspend fun operate(oid: String, attrs: Map<String, String>, stack: String): Boolean {
+            ops.add(oid to stack)
+            return true
+        }
     }
 
     private class FakeNetworkProbe(
@@ -291,5 +300,96 @@ class FiberDiagnosticEngineTest {
         assertEquals(DiagnosticStepId.OPTICAL_LINK, finalState.failureStep)
         assertEquals(DiagnosticStepStatus.FAILED, finalState.steps[0].status)
         assertEquals(DiagnosticStepStatus.SKIPPED, finalState.steps[1].status)
+    }
+
+    @Test
+    fun step2PopulatesGponAuthInfo() = runBlocking {
+        val oids = standardHealthyOids().toMutableMap().apply {
+            put(
+                "DEV2_GPON_AUTH",
+                mapOf(
+                    "gponSn" to "HWTC12345678",
+                    "snType" to "0",
+                    "gponPwd" to "secretPloam",
+                    "pwdType" to "0",
+                    "oltMode" to "1",
+                ),
+            )
+        }
+        val engine = FiberDiagnosticEngine(
+            telemetrySource = FakeTelemetrySource(oids),
+            networkProbe = FakeNetworkProbe(),
+        )
+
+        val finalState = engine.runDiagnostics().toList().last()
+        assertNotNull(finalState.gponAuth)
+        assertEquals("HWTC12345678", finalState.gponAuth?.snAscii)
+        assertEquals("4857544312345678", finalState.gponAuth?.snHex)
+        assertEquals("secretPloam", finalState.gponAuth?.gponPwd)
+        assertEquals(OltMode.MODE_H, finalState.gponAuth?.oltMode)
+    }
+
+    @Test
+    fun restartOmciSuccess() = runBlocking {
+        val oids = mapOf(
+            "DEV2_GPON_INTF_OMCI_STATS" to mapOf("omciStatus" to "O5_Associated"),
+        )
+        val fakeSource = FakeTelemetrySource(oids)
+        val engine = FiberDiagnosticEngine(telemetrySource = fakeSource, networkProbe = FakeNetworkProbe())
+
+        val states = engine.restartOmci(pollIntervalMs = 1L).toList()
+        assertEquals(OmciRestartStage.RESTARTING, states[0].stage)
+        assertEquals(OmciRestartStage.AWAITING_O5, states[1].stage)
+        assertEquals(OmciRestartStage.SUCCESS, states[2].stage)
+        assertTrue(fakeSource.ops.any { it.first == FiberDiagnosticEngine.ACT_OMCI_RESTART })
+    }
+
+    @Test
+    fun renewWanSessionPppoeSuccess() = runBlocking {
+        val oids = mapOf(
+            "DEV2_ADT_WAN" to listOf(
+                mapOf(
+                    "name" to "pppoe_0_1",
+                    "connStatusV4" to "Connected",
+                    "connType" to "PPPoE",
+                    "externalIPAddress" to "84.120.45.10",
+                    "stack" to "1,0,0,0,0,0",
+                ),
+            ),
+        )
+        val fakeSource = FakeTelemetrySource(oids)
+        val engine = FiberDiagnosticEngine(telemetrySource = fakeSource, networkProbe = FakeNetworkProbe())
+
+        val states = engine.renewWanSession(delayBetweenMs = 1L, pollIntervalMs = 1L).toList()
+        assertEquals(WanRenewStage.DISCONNECTING, states[0].stage)
+        assertEquals(WanRenewStage.RECONNECTING, states[1].stage)
+        assertEquals(WanRenewStage.VERIFYING, states[2].stage)
+        assertEquals(WanRenewStage.SUCCESS, states[3].stage)
+        assertEquals("84.120.45.10", states[3].newIp)
+        assertTrue(fakeSource.ops.any { it.first == FiberDiagnosticEngine.ACT_PPP_DISCONN && it.second == "1,0,0,0,0,0" })
+        assertTrue(fakeSource.ops.any { it.first == FiberDiagnosticEngine.ACT_PPP_CONN && it.second == "1,0,0,0,0,0" })
+    }
+
+    @Test
+    fun renewWanSessionDhcpSuccess() = runBlocking {
+        val oids = mapOf(
+            "DEV2_ADT_WAN" to listOf(
+                mapOf(
+                    "name" to "ipoe_eth_0",
+                    "connStatusV4" to "Connected",
+                    "connType" to "DHCP",
+                    "externalIPAddress" to "88.26.12.34",
+                    "stack" to "2,0,0,0,0,0",
+                ),
+            ),
+        )
+        val fakeSource = FakeTelemetrySource(oids)
+        val engine = FiberDiagnosticEngine(telemetrySource = fakeSource, networkProbe = FakeNetworkProbe())
+
+        val states = engine.renewWanSession(delayBetweenMs = 1L, pollIntervalMs = 1L).toList()
+        assertEquals(WanRenewStage.SUCCESS, states.last().stage)
+        assertEquals("88.26.12.34", states.last().newIp)
+        assertTrue(fakeSource.ops.any { it.first == FiberDiagnosticEngine.ACT_DHCP_RELEASE && it.second == "2,0,0,0,0,0" })
+        assertTrue(fakeSource.ops.any { it.first == FiberDiagnosticEngine.ACT_DHCP_RENEW && it.second == "2,0,0,0,0,0" })
     }
 }

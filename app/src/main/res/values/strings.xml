@@ -227,6 +227,39 @@
     <string name="fiber_status_warning">Warning</string>
     <string name="fiber_status_failed">Failed</string>
     <string name="fiber_status_skipped">Skipped</string>
+
+    <!-- Fiber Hub ONT Registration & WAN Control -->
+    <string name="fiber_ont_details_title">ONT Registration Details</string>
+    <string name="fiber_ont_sn_ascii">GPON SN (ASCII)</string>
+    <string name="fiber_ont_sn_hex">GPON SN (HEX)</string>
+    <string name="fiber_ont_ploam_pwd">PLOAM Password</string>
+    <string name="fiber_ont_olt_mode">OLT Mode</string>
+    <string name="fiber_ont_copy">Copy</string>
+    <string name="fiber_ont_copied">Copied to clipboard</string>
+    <string name="fiber_ont_export_config">Export SFP Config</string>
+    <string name="fiber_ont_export_copied">SFP configuration snippet copied</string>
+    <string name="fiber_ont_restart_omci">Restart OMCI</string>
+    <string name="fiber_ont_restart_omci_dialog_title">Restart OMCI State Machine?</string>
+    <string name="fiber_ont_restart_omci_dialog_desc">This will momentarily re-synchronize the ONT registration with the DIGI OLT without rebooting the router hardware.</string>
+    <string name="fiber_ont_restart_omci_confirm">Restart OMCI</string>
+    <string name="fiber_ont_restart_omci_in_progress">Restarting OMCI...</string>
+    <string name="fiber_ont_restart_omci_success">OMCI re-associated successfully (O5)</string>
+    <string name="fiber_ont_restart_omci_failed">OMCI restart timed out or failed</string>
+    <string name="fiber_ont_read_only_badge">Read-Only / Safe Mode</string>
+    <string name="fiber_wan_details_title">WAN Connection Details</string>
+    <string name="fiber_wan_renew_button">Renew Public IP / Reconnect</string>
+    <string name="fiber_wan_renew_dialog_title">Renew Public IP Address?</string>
+    <string name="fiber_wan_renew_dialog_desc">The router will terminate and immediately re-establish the WAN session. Internet connectivity will pause for 3–5 seconds without rebooting the router.</string>
+    <string name="fiber_wan_renew_confirm">Renew Now</string>
+    <string name="fiber_wan_renew_in_progress_disconn">Dropping WAN session...</string>
+    <string name="fiber_wan_renew_in_progress_reconn">Re-establishing connection...</string>
+    <string name="fiber_wan_renew_in_progress_verify">Verifying new public IP...</string>
+    <string name="fiber_wan_renew_success">Public IP renewed in %1$.1fs: %2$s</string>
+    <string name="fiber_wan_renew_failed">Failed to renew WAN session</string>
+    <string name="fiber_wan_proto">Protocol</string>
+    <string name="fiber_wan_ip">Public IPv4</string>
+    <string name="fiber_wan_gateway">Gateway</string>
+    <string name="fiber_wan_dns">DNS Servers</string>
     <!-- DIGI Assistant Hub & Dual Diagnostic -->
     <string name="page_digi_assistant_hub">DIGI Assistant</string>
     <string name="page_digi_assistant_hub_desc">Unified diagnostic and optimization tools</string>

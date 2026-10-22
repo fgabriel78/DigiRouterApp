@@ -3,6 +3,7 @@ package es.routerapp.protocol.optical
 import es.routerapp.protocol.RouterClient
 import es.routerapp.protocol.pages.PageEngine
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -61,6 +62,8 @@ class DefaultNetworkProbe : NetworkProbe {
 interface RouterTelemetrySource {
     suspend fun getList(oid: String): List<Map<String, String>>
     suspend fun get(oid: String): Map<String, String>
+    suspend fun get(oid: String, stack: String): Map<String, String> = get(oid)
+    suspend fun operate(oid: String, attrs: Map<String, String> = emptyMap(), stack: String = RouterClient.DEFAULT_STACK): Boolean = true
 }
 
 class ClientTelemetrySource(private val client: RouterClient) : RouterTelemetrySource {
@@ -88,6 +91,21 @@ class ClientTelemetrySource(private val client: RouterClient) : RouterTelemetryS
             PageEngine.toInstances(client.get(oid)).firstOrNull()?.values.orEmpty()
         }.getOrNull()
         fromGet.orEmpty()
+    }
+
+    override suspend fun get(oid: String, stack: String): Map<String, String> = withContext(Dispatchers.IO) {
+        val fromGet = runCatching {
+            PageEngine.toInstances(client.get(oid, stack = stack)).firstOrNull()?.values.orEmpty()
+        }.getOrNull()
+        if (!fromGet.isNullOrEmpty()) return@withContext fromGet
+        get(oid)
+    }
+
+    override suspend fun operate(oid: String, attrs: Map<String, String>, stack: String): Boolean = withContext(Dispatchers.IO) {
+        val primary = runCatching { client.operate(oid, attrs, stack) }.isSuccess
+        if (primary) return@withContext true
+        val altOid = if (oid.startsWith("ACT_OP_")) oid.replace("ACT_OP_", "ACT_") else oid.replace("ACT_", "ACT_OP_")
+        runCatching { client.operate(altOid, attrs, stack) }.isSuccess
     }
 }
 
@@ -236,6 +254,11 @@ class FiberDiagnosticEngine(
         updateStep(DiagnosticStepId.OMCI_REGISTRATION) { it.copy(status = DiagnosticStepStatus.RUNNING) }
         emit(currentSnapshot)
 
+        // Read ONT authentication/registration telemetry
+        val gponAuthRaw = runCatching { telemetrySource.get("DEV2_GPON_AUTH", stack = "1,0,0,0,0,0") }.getOrDefault(emptyMap())
+        val gponAuth = if (gponAuthRaw.isNotEmpty()) GponAuthInfo.fromMap(gponAuthRaw) else null
+        currentSnapshot = currentSnapshot.copy(gponAuth = gponAuth)
+
         val omciStep = if (opticalTelemetry.isExternalOnt) {
             DiagnosticStep(
                 id = DiagnosticStepId.OMCI_REGISTRATION,
@@ -298,6 +321,7 @@ class FiberDiagnosticEngine(
         val freshWans = telemetrySource.getList("DEV2_ADT_WAN")
         val currentWan = freshWans.firstOrNull { it["connStatusV4"] == "Connected" || it["connStatusV6"] == "Connected" }
             ?: freshWans.firstOrNull { it["connStatusV4"] == "Connecting" }
+        currentSnapshot = currentSnapshot.copy(activeWan = currentWan)
 
         val wanStep = if (currentWan == null) {
             DiagnosticStep(
@@ -450,5 +474,128 @@ class FiberDiagnosticEngine(
             summaryMessage = finalSummary,
         )
         emit(currentSnapshot)
+    }
+
+    /**
+     * Triggers a non-destructive restart of the router's OMCI state machine via `ACT_OMCI_RESTART`,
+     * and polls `DEV2_GPON_INTF_OMCI_STATS` until the registration transitions back to `O5 Associated`.
+     */
+    fun restartOmci(
+        pollIntervalMs: Long = 1000L,
+        maxAttempts: Int = 15,
+    ): Flow<OmciRestartProgress> = flow {
+        emit(OmciRestartProgress(stage = OmciRestartStage.RESTARTING, statusText = "Restarting OMCI stack..."))
+        val success = telemetrySource.operate(ACT_OMCI_RESTART)
+        if (!success) {
+            emit(OmciRestartProgress(stage = OmciRestartStage.ERROR, errorMessage = "Failed to dispatch OMCI restart"))
+            return@flow
+        }
+
+        emit(OmciRestartProgress(stage = OmciRestartStage.AWAITING_O5, statusText = "Awaiting OLT registration (O5)..."))
+        var associated = false
+        var lastStatus = ""
+        for (i in 1..maxAttempts) {
+            delay(pollIntervalMs)
+            val omciStats = telemetrySource.get("DEV2_GPON_INTF_OMCI_STATS")
+            val status = omciStats["omciStatus"] ?: omciStats["status"] ?: ""
+            lastStatus = status
+            if (status.contains("O5", ignoreCase = true) ||
+                status.contains("Associated", ignoreCase = true) ||
+                status.contains("Registered", ignoreCase = true) ||
+                status.equals("Up", ignoreCase = true)
+            ) {
+                associated = true
+                break
+            }
+        }
+
+        if (associated) {
+            emit(OmciRestartProgress(stage = OmciRestartStage.SUCCESS, statusText = "OMCI Associated (O5)"))
+        } else {
+            emit(OmciRestartProgress(stage = OmciRestartStage.ERROR, errorMessage = "OMCI registration timed out (last status: $lastStatus)"))
+        }
+    }
+
+    /**
+     * Executes on-demand WAN session termination and re-establishment:
+     * - For PPPoE: `ACT_PPP_DISCONN` -> delay -> `ACT_PPP_CONN`
+     * - For DHCP: `ACT_DHCP_RELEASE` -> delay -> `ACT_DHCP_RENEW`
+     * Polls `DEV2_ADT_WAN` until connection status returns to `Connected`, confirming new IP acquisition.
+     */
+    fun renewWanSession(
+        delayBetweenMs: Long = 1500L,
+        pollIntervalMs: Long = 1000L,
+        maxAttempts: Int = 12,
+    ): Flow<WanRenewProgress> = flow {
+        emit(WanRenewProgress(stage = WanRenewStage.DISCONNECTING))
+        val startTime = System.currentTimeMillis()
+
+        val wans = telemetrySource.getList("DEV2_ADT_WAN")
+        val activeWan = wans.firstOrNull { it["connStatusV4"] == "Connected" }
+            ?: wans.firstOrNull { it["name"]?.startsWith("usb_") == false }
+            ?: wans.firstOrNull()
+
+        if (activeWan == null) {
+            emit(WanRenewProgress(stage = WanRenewStage.ERROR, errorMessage = "No active WAN connection found"))
+            return@flow
+        }
+
+        val stack = activeWan["stack"] ?: RouterClient.DEFAULT_STACK
+        val connType = activeWan["connType"].orEmpty()
+        val oldIp = activeWan["externalIPAddress"]
+
+        val disconnAct = if (connType.equals("DHCP", ignoreCase = true)) ACT_DHCP_RELEASE else ACT_PPP_DISCONN
+        val connAct = if (connType.equals("DHCP", ignoreCase = true)) ACT_DHCP_RENEW else ACT_PPP_CONN
+
+        // 1. Disconnect session
+        telemetrySource.operate(disconnAct, stack = stack)
+        delay(delayBetweenMs)
+
+        // 2. Re-establish connection
+        emit(WanRenewProgress(stage = WanRenewStage.RECONNECTING, oldIp = oldIp))
+        telemetrySource.operate(connAct, stack = stack)
+
+        // 3. Verify connection and capture renewed IP
+        emit(WanRenewProgress(stage = WanRenewStage.VERIFYING, oldIp = oldIp))
+        var reconnected = false
+        var newIp: String? = null
+
+        for (i in 1..maxAttempts) {
+            delay(pollIntervalMs)
+            val updatedWans = telemetrySource.getList("DEV2_ADT_WAN")
+            val targetWan = updatedWans.firstOrNull { it["stack"] == stack || it["name"] == activeWan["name"] }
+                ?: updatedWans.firstOrNull { it["connStatusV4"] == "Connected" }
+
+            if (targetWan?.get("connStatusV4") == "Connected") {
+                reconnected = true
+                newIp = targetWan["externalIPAddress"]
+                break
+            }
+        }
+
+        val elapsed = (System.currentTimeMillis() - startTime) / 1000f
+        if (reconnected) {
+            emit(WanRenewProgress(
+                stage = WanRenewStage.SUCCESS,
+                oldIp = oldIp,
+                newIp = newIp,
+                elapsedSeconds = elapsed,
+            ))
+        } else {
+            emit(WanRenewProgress(
+                stage = WanRenewStage.ERROR,
+                oldIp = oldIp,
+                elapsedSeconds = elapsed,
+                errorMessage = "WAN reconnection timed out",
+            ))
+        }
+    }
+
+    companion object {
+        const val ACT_OMCI_RESTART = "ACT_OMCI_RESTART"
+        const val ACT_PPP_DISCONN = "ACT_PPP_DISCONN"
+        const val ACT_PPP_CONN = "ACT_PPP_CONN"
+        const val ACT_DHCP_RELEASE = "ACT_DHCP_RELEASE"
+        const val ACT_DHCP_RENEW = "ACT_DHCP_RENEW"
     }
 }
