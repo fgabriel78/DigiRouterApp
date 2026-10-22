@@ -16,3 +16,6 @@ bin/
 .vscode/
 *.apk
 keystore.properties
+
+# Agent skills and workflows
+.agents/
