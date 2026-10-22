@@ -352,6 +352,18 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                     onBack = { navigateBack() },
                 )
             }
+            id == "remote-mgmt" || page.id == "remote-mgmt" -> {
+                val remoteMgmtVm = remember(vm) {
+                    RemoteManagementViewModel(
+                        clientProvider = { vm.client },
+                        recoveryRunner = vm,
+                    )
+                }
+                RemoteManagementScreen(
+                    viewModel = remoteMgmtVm,
+                    onBack = { navigateBack() },
+                )
+            }
             else -> GenericPageScreen(page, engine, onBack = { navigateBack() }, recovery = vm)
         }
     }

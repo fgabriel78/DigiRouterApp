@@ -546,6 +546,8 @@ object Catalog {
         description = "Save and restore configuration snapshots", custom = true)
     private val systemLog = Page(id = "system-log", title = "System Log", group = Group.SYSTEM,
         description = "Live router events, diagnostic traces and syslog sensitivity", custom = true, adminOnly = true)
+    private val remoteMgmt = Page(id = "remote-mgmt", title = "Remote Management", group = Group.SYSTEM,
+        description = "Terminal daemons, web management ports, SSL certificates, and operator TR-069 audit", custom = true, adminOnly = true)
 
     val pages: List<Page> = listOf(
         dashboard, devices, speedtest, fiberDiag, dualDiag,
@@ -554,7 +556,7 @@ object Catalog {
         virtualServers, portTrigger, dmz, upnp, alg,
         securityHealth, parentalControl, security, arp,
         storage,
-        time, led, reboot, backup, systemLog, stats,
+        time, led, reboot, backup, systemLog, remoteMgmt, stats,
     )
 
     fun visiblePages(username: String): List<Page> =

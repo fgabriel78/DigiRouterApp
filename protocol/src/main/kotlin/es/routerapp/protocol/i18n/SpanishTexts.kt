@@ -215,5 +215,8 @@ object SpanishTexts {
         "Save and restore configuration snapshots" to "Guardar y restaurar copias de configuración",
         "System Log" to "Registro del sistema",
         "Live router events, diagnostic traces and syslog sensitivity" to "Eventos en directo del router, trazas y sensibilidad de syslog",
+        "Remote Management" to "Gestión remota",
+        "Terminal daemons, web management ports, SSL certificates, and operator TR-069 audit" to
+            "Demonios de terminal, puertos web, certificados SSL y auditoría TR-069 del operador",
     )
 }

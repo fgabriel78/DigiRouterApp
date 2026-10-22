@@ -94,6 +94,7 @@ fun pageIcon(id: String): ImageVector = when (id) {
     "parental-control" -> Icons.Filled.People
     "qos" -> Icons.Filled.Speed
     "vpn" -> Icons.Filled.Lock
+    "remote-mgmt" -> Icons.Filled.Shield
     "fiber-diag" -> Icons.Filled.Lan
     "dual-diag" -> Icons.Filled.SwapHoriz
     else -> Icons.Filled.Router

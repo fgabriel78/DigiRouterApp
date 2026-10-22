@@ -369,6 +369,11 @@ class RouterClient(
         return execute(builder("/cgi/openvpn?cliOvpnDown").get().build())
     }
 
+    /** Downloads the router's CA root certificate binary from the router. */
+    fun downloadCaCert(): ByteArray {
+        return executeBytes(builder("/cgi/https?downCACert").get().build())
+    }
+
     /** Triggers regeneration of OpenVPN certificates and Diffie-Hellman keys on the router. */
     fun regenerateOpenVpnKeys(): JsonElement {
         return operate("ACT_OP_OVPN_REGEN_KEYS")

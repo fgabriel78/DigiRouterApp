@@ -39,4 +39,20 @@ class CatalogRoleTest {
         val userPages = Catalog.visiblePages("user")
         assertFalse(userPages.any { it.id == "vpn" })
     }
+
+    @Test
+    fun testRemoteManagementAdminRestricted() {
+        val page = Catalog.byId("remote-mgmt")
+        assertNotNull(page)
+        assertEquals("Remote Management", page?.title)
+        assertEquals(Group.SYSTEM, page?.group)
+        assertTrue(page?.adminOnly == true)
+        assertTrue(page?.custom == true)
+
+        val adminPages = Catalog.visiblePages("admin")
+        assertTrue(adminPages.any { it.id == "remote-mgmt" })
+
+        val userPages = Catalog.visiblePages("user")
+        assertFalse(userPages.any { it.id == "remote-mgmt" })
+    }
 }
