@@ -422,5 +422,58 @@
     <string name="qos_error_save">Could not save the QoS settings</string>
     <string name="qos_error_priority">Could not change the device priority</string>
     <string name="qos_error_delete">Could not delete the rule</string>
+
+    <!-- VPN Server -->
+    <string name="vpn_title">VPN Server</string>
+    <string name="vpn_tab_openvpn">OpenVPN</string>
+    <string name="vpn_tab_clients">Connected Clients</string>
+    <string name="vpn_tab_clients_count">Clients (%1$d)</string>
+    <string name="vpn_tab_ipsec_pptp">IPSec &amp; PPTP</string>
+
+    <string name="vpn_banner_cgnat_title">CGNAT Detected</string>
+    <string name="vpn_banner_cgnat_desc">Your router is behind Carrier-Grade NAT (%1$s). Incoming connections require DIGI Conexión Plus (public IPv4) or active DDNS.</string>
+    <string name="vpn_banner_private_title">Private WAN IP Detected</string>
+    <string name="vpn_banner_private_desc">The router WAN address (%1$s) is in a private network range. Set up DDNS to connect from outside.</string>
+    <string name="vpn_banner_ddns_active">DDNS active (%1$s). VPN client profiles will connect to this domain.</string>
+    <string name="vpn_banner_public_ip">Public IP detected (%1$s). Ready for incoming home VPN tunnels.</string>
+    <string name="vpn_action_configure_ddns">Configure DDNS</string>
+
+    <string name="vpn_openvpn_server_title">OpenVPN Server</string>
+    <string name="vpn_openvpn_enable">Enable OpenVPN Server</string>
+    <string name="vpn_protocol">Protocol</string>
+    <string name="vpn_proto_udp">UDP (Recommended)</string>
+    <string name="vpn_proto_tcp">TCP</string>
+    <string name="vpn_port">Service Port</string>
+    <string name="vpn_subnet">VPN Subnet</string>
+    <string name="vpn_netmask">Netmask</string>
+    <string name="vpn_access_mode">Client Access Mode</string>
+    <string name="vpn_access_home_only">Home Network (LAN) Only</string>
+    <string name="vpn_access_all">Internet &amp; Home Network</string>
+    <string name="vpn_save_settings">Save VPN Settings</string>
+    <string name="vpn_export_profile_btn">Export Configuration (.ovpn)</string>
+    <string name="vpn_regen_keys_btn">Regenerate Certificates</string>
+
+    <string name="vpn_regen_dialog_title">Regenerate Security Keys?</string>
+    <string name="vpn_regen_dialog_desc">Regenerating certificates will revoke all existing client profiles and disconnect remote devices. This operation takes 15–30 seconds. Continue?</string>
+    <string name="vpn_regen_progress">Generating 2048-bit RSA keys and certificates on the router…</string>
+
+    <string name="vpn_export_sheet_title">Export VPN Profile</string>
+    <string name="vpn_export_detected_host">Detected endpoint: %1$s</string>
+    <string name="vpn_export_override_label">Remote Host / Domain (Optional Override)</string>
+    <string name="vpn_export_override_help">Override the remote address in the .ovpn file with your custom DDNS domain or public IP.</string>
+    <string name="vpn_action_share">Share Profile</string>
+    <string name="vpn_action_save">Save File</string>
+
+    <string name="vpn_clients_empty">No clients currently connected to the VPN</string>
+    <string name="vpn_client_virtual_ip">Virtual IP: %1$s</string>
+    <string name="vpn_client_remote_ip">Endpoint: %1$s</string>
+    <string name="vpn_client_uptime">Uptime: %1$s</string>
+    <string name="vpn_client_traffic">↓ %1$s · ↑ %2$s</string>
+
+    <string name="vpn_ipsec_title">IPSec Tunnels</string>
+    <string name="vpn_ipsec_empty">No IPSec tunnels configured</string>
+    <string name="vpn_pptp_title">PPTP Server (Legacy)</string>
+    <string name="vpn_pptp_warning">PPTP uses MS-CHAPv2 and is considered insecure. Modern Android versions do not support PPTP client connections.</string>
+    <string name="vpn_pptp_enable">Enable PPTP Server</string>
 </resources>
 

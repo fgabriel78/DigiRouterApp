@@ -20,8 +20,8 @@ android {
         applicationId = "es.digirouter.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 22
-        versionName = "1.15.0"
+        versionCode = 23
+        versionName = "1.16.0"
     }
 
     signingConfigs {

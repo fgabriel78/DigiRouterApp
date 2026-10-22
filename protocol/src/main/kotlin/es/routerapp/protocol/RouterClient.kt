@@ -364,6 +364,16 @@ class RouterClient(
         return set("DEV2_SYSLOG_CFG", mapOf("localSeverity" to level.code.toString()))
     }
 
+    /** Downloads the OpenVPN client profile (.ovpn) configuration file from the router. */
+    fun downloadOpenVpnProfile(): String {
+        return execute(builder("/cgi/openvpn?cliOvpnDown").get().build())
+    }
+
+    /** Triggers regeneration of OpenVPN certificates and Diffie-Hellman keys on the router. */
+    fun regenerateOpenVpnKeys(): JsonElement {
+        return operate("ACT_OP_OVPN_REGEN_KEYS")
+    }
+
     private fun postEncrypted(plain: String, isLogin: Boolean): String {
         val c = crypto ?: throw IllegalStateException("Not logged in")
         val body = c.encryptRequest(plain, isLogin).toRequestBody().toRequestBody(TEXT)

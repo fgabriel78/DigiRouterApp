@@ -539,6 +539,8 @@ object Catalog {
 
     private val qos = Page(id = "qos", title = "Intelligent QoS", group = Group.NETWORK,
         description = "Bandwidth caps, priority queues and device prioritization", custom = true, adminOnly = true)
+    private val vpn = Page(id = "vpn", title = "VPN Server", group = Group.NETWORK,
+        description = "Host OpenVPN, IPSec and PPTP servers for secure home access", custom = true, adminOnly = true)
 
     private val backup = Page(id = "backup", title = "Backup & restore", group = Group.SYSTEM,
         description = "Save and restore configuration snapshots", custom = true)
@@ -548,7 +550,7 @@ object Catalog {
     val pages: List<Page> = listOf(
         dashboard, devices, speedtest, fiberDiag, dualDiag,
         wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
-        lan, dhcpReservations, ddns, qos,
+        lan, dhcpReservations, ddns, qos, vpn,
         virtualServers, portTrigger, dmz, upnp, alg,
         securityHealth, parentalControl, security, arp,
         storage,

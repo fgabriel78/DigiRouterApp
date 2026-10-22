@@ -298,6 +298,19 @@ private fun AppNavigation(vm: RouterViewModel, username: String, routerAddress: 
                 }
                 QosScreen(viewModel = qosVm, onBack = { navigateBack() })
             }
+            id == "vpn" || page?.id == "vpn" -> {
+                val vpnVm = remember(vm) {
+                    VpnViewModel(
+                        clientProvider = { vm.client },
+                        recoveryRunner = vm,
+                    )
+                }
+                VpnScreen(
+                    viewModel = vpnVm,
+                    onBack = { navigateBack() },
+                    onNavigateToDdns = { navigateTo("ddns") },
+                )
+            }
             page == null -> HomeScreen(username, routerAddress, onOpen = { navigateTo(it.id) }, onLogout = vm::logout)
             page.id == "dashboard" -> DashboardScreen(
                 engine = engine,

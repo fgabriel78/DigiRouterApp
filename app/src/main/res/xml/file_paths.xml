@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <files-path name="backups" path="backups/" />
+    <cache-path name="vpn" path="vpn/" />
+    <files-path name="vpn" path="vpn/" />
 </paths>

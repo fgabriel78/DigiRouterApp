@@ -67,6 +67,8 @@ object SpanishTexts {
         "Profiles, screen time quotas, content filtering and web insights" to "Perfiles, límites de tiempo, filtrado de contenido y estadísticas",
         "Intelligent QoS" to "QoS inteligente",
         "Bandwidth caps, priority queues and device prioritization" to "Límites de ancho de banda, colas de prioridad y prioridad por dispositivo",
+        "VPN Server" to "Servidor VPN",
+        "Host OpenVPN, IPSec and PPTP servers for secure home access" to "Aloja servidores OpenVPN, IPSec y PPTP para acceso remoto seguro",
 
         // Wi-Fi
         "Main Wi-Fi" to "Wi-Fi principal",

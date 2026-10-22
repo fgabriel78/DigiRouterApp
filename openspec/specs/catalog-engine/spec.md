@@ -18,6 +18,11 @@ The system SHALL model router configuration screens declaratively using `Page`, 
 - **WHEN** a `Field` is defined
 - **THEN** it specifies an attribute key, label, help text, optional conditional visibility predicate (`visibleIf`), and a polymorphic `FieldType` (Switch, Text, Secret, Number, Choice, Ipv4, Mac, TimeOfDay, Info).
 
+#### Scenario: Register custom VPN server page in network group
+- **GIVEN** the catalog page registry
+- **WHEN** `Catalog.pages` is initialized
+- **THEN** it contains a `Page` with id `"vpn"`, functional group `Group.NETWORK`, `custom = true`, and `adminOnly = true`.
+
 ### Requirement: Field Value Validation and Constraints
 The system SHALL enforce type constraints and range boundaries on field values before dispatching writes to the router.
 
