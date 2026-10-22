@@ -7,7 +7,7 @@
     <string name="login_password">Contraseña de administración</string>
     <string name="login_remember_password">Recordar contraseña</string>
     <string name="login_button">Iniciar sesión</string>
-    <string name="login_busy_warning">Hay otra sesión de administración abierta en el router. Si continúas, se cerrará.</string>
+    <string name="login_busy_warning">Nota: El router solo admite una sesión de administración activa. Si hay otra abierta, se cerrará al entrar.</string>
     <string name="login_wrong_password">Contraseña incorrecta</string>
     <string name="login_session_expired">Tu sesión ha finalizado por inactividad. Inicia sesión de nuevo.</string>
     <string name="login_unreachable">No se puede contactar con el router. Comprueba que estás conectado a su Wi-Fi.</string>

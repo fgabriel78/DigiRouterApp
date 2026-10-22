@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import es.routerapp.protocol.RouterClient
 import es.routerapp.protocol.RouterException
 import es.routerapp.protocol.pages.PageEngine
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +49,12 @@ class RouterViewModel @JvmOverloads constructor(
     metadataStore: DeviceMetadataStore? = null,
     fingerprintScanner: NetworkFingerprintScanner? = null,
     backupStore: BackupStore? = null,
+    private val clientFactory: (String) -> RouterClient = { address -> RouterClient("http://$address") },
+    coroutineScope: CoroutineScope? = null,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val retryDelayMs: Long = 500L,
 ) : AndroidViewModel(app), RecoveryRunner {
+    private val effectiveScope = coroutineScope ?: viewModelScope
     override suspend fun <T> run(block: suspend () -> T): T = executeWithRecovery(block)
     val metadataStore: DeviceMetadataStore = metadataStore
         ?: runCatching { SharedPrefsDeviceMetadataStore(app) }.getOrElse { InMemoryDeviceMetadataStore() }
@@ -76,7 +84,7 @@ class RouterViewModel @JvmOverloads constructor(
     fun triggerDeviceScan(devices: List<es.routerapp.protocol.pages.ConnectedDevice>) {
         if (devices.isEmpty()) return
         scanJob?.cancel()
-        scanJob = viewModelScope.launch(Dispatchers.IO) {
+        scanJob = effectiveScope.launch(ioDispatcher) {
             fingerprintScanner.scanFlow(devices).collect { (mac, fp) ->
                 _fingerprints.update { current ->
                     current + (mac to fp)
@@ -118,20 +126,36 @@ class RouterViewModel @JvmOverloads constructor(
     fun login(password: String) {
         if (_state.value.loggingIn) return
         _state.update { it.copy(loggingIn = true, error = null) }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    val address = _state.value.address
-                    if (!LocalNetworkValidator.isLocalAddress(address)) {
-                        throw SecurityException("Cleartext communication is restricted to local network ranges: $address")
-                    }
-                    val c = RouterClient("http://" + address)
-                    val busy = c.busy()
+        effectiveScope.launch {
+            val result = withContext(ioDispatcher) {
+                val address = _state.value.address
+                if (!LocalNetworkValidator.isLocalAddress(address)) {
+                    return@withContext Result.failure(
+                        SecurityException("Cleartext communication is restricted to local network ranges: $address")
+                    )
+                }
+
+                suspend fun doAttempt(): Result<Boolean> = runCatching {
+                    val c = clientFactory(address)
+                    val busyLogined = runCatching { c.busy().isLogined }.getOrDefault(false)
                     c.login(password, _state.value.username)
                     client = c
                     engine = PageEngine(c)
                     activePassword = password
-                    busy.isLogined
+                    busyLogined
+                }
+
+                val firstAttempt = doAttempt()
+                if (firstAttempt.isSuccess) {
+                    firstAttempt
+                } else {
+                    val ex = firstAttempt.exceptionOrNull()
+                    if (ex != null && isRecoverableLoginFailure(ex)) {
+                        delay(retryDelayMs)
+                        doAttempt()
+                    } else {
+                        firstAttempt
+                    }
                 }
             }
             _state.update { s ->
@@ -219,8 +243,18 @@ class RouterViewModel @JvmOverloads constructor(
         client = null
         engine = null
         _state.update { it.copy(loggedIn = false) }
-        viewModelScope.launch(Dispatchers.IO) { runCatching { c.logout() } }
+        effectiveScope.launch(ioDispatcher) { runCatching { c.logout() } }
     }
+}
+
+internal fun isRecoverableLoginFailure(t: Throwable): Boolean = when {
+    RouterClient.isSessionOrStreamFailure(t) -> true
+    t is SecurityException -> false
+    t is UnknownServiceException -> false
+    t.message?.contains("CLEARTEXT", ignoreCase = true) == true -> false
+    t is RouterException -> false
+    t is IOException -> true
+    else -> false
 }
 
 internal fun mapLoginError(t: Throwable): LoginError = when {

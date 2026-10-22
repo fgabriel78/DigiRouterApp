@@ -2,6 +2,8 @@ package es.digirouter.app
 
 import android.app.Application
 import es.routerapp.protocol.RouterException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -133,5 +135,113 @@ class RouterViewModelTest {
 
         assertEquals(1, vm.fingerprints.value.size)
         assertEquals("PlayStation 5", vm.fingerprints.value["AA:BB:CC:DD:EE:99"]?.exactModel)
+    }
+    @Test
+    fun `isRecoverableLoginFailure identifies stream and socket drops as recoverable`() {
+        assertTrue(isRecoverableLoginFailure(IOException("unexpected end of stream on http://192.168.1.1/cgi_gdpr?9")))
+        assertTrue(isRecoverableLoginFailure(java.net.SocketException("Connection reset")))
+        assertTrue(isRecoverableLoginFailure(java.io.EOFException("End of stream")))
+        assertTrue(isRecoverableLoginFailure(IOException("Failed to connect to /192.168.1.1:80")))
+        assertTrue(isRecoverableLoginFailure(RouterException(-1, "Session expired: router returned cleartext redirect response")))
+    }
+
+    @Test
+    fun `isRecoverableLoginFailure identifies credentials and security errors as non-recoverable`() {
+        assertFalse(isRecoverableLoginFailure(RouterException(71233, "Invalid credentials")))
+        assertFalse(isRecoverableLoginFailure(SecurityException("Cleartext communication is restricted to local network ranges: 8.8.8.8")))
+        assertFalse(isRecoverableLoginFailure(UnknownServiceException("CLEARTEXT communication to 192.168.1.50 not permitted")))
+        assertFalse(isRecoverableLoginFailure(IOException("Cleartext HTTP traffic to example.com not permitted")))
+        assertFalse(isRecoverableLoginFailure(IllegalStateException("Unknown state")))
+    }
+
+    @Test
+    fun `login automatically retries on transient transport failure and succeeds`() {
+        var attempts = 0
+        val testScope = CoroutineScope(Dispatchers.Unconfined)
+        val vm = RouterViewModel(
+            app = Application(),
+            credentialStore = FakeCredentialStore(null),
+            clientFactory = {
+                attempts++
+                if (attempts == 1) {
+                    throw IOException("unexpected end of stream on http://192.168.1.1/cgi_gdpr?9")
+                }
+                throw RouterException(71233, "Invalid credentials")
+            },
+            coroutineScope = testScope,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryDelayMs = 0L,
+        )
+
+        vm.login("admin_pass")
+
+        assertEquals(2, attempts)
+        assertEquals(LoginError.WrongPassword, vm.state.value.error)
+    }
+
+    @Test
+    fun `login does not retry on non-recoverable credential rejection`() {
+        var attempts = 0
+        val testScope = CoroutineScope(Dispatchers.Unconfined)
+        val vm = RouterViewModel(
+            app = Application(),
+            credentialStore = FakeCredentialStore(null),
+            clientFactory = {
+                attempts++
+                throw RouterException(71233, "Invalid credentials")
+            },
+            coroutineScope = testScope,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryDelayMs = 0L,
+        )
+
+        vm.login("wrong_pass")
+
+        assertEquals(1, attempts)
+        assertEquals(LoginError.WrongPassword, vm.state.value.error)
+    }
+
+    @Test
+    fun `login does not retry on cleartext restriction security exception`() {
+        var attempts = 0
+        val testScope = CoroutineScope(Dispatchers.Unconfined)
+        val vm = RouterViewModel(
+            app = Application(),
+            credentialStore = FakeCredentialStore(null),
+            clientFactory = {
+                attempts++
+                throw SecurityException("Cleartext communication is restricted to local network ranges: 8.8.8.8")
+            },
+            coroutineScope = testScope,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryDelayMs = 0L,
+        )
+        vm.setAddress("8.8.8.8")
+        vm.login("pass")
+
+        assertEquals(0, attempts)
+        assertEquals(LoginError.CleartextRestricted, vm.state.value.error)
+    }
+
+    @Test
+    fun `login exhausts retry and maps to unreachable when transport continues failing`() {
+        var attempts = 0
+        val testScope = CoroutineScope(Dispatchers.Unconfined)
+        val vm = RouterViewModel(
+            app = Application(),
+            credentialStore = FakeCredentialStore(null),
+            clientFactory = {
+                attempts++
+                throw IOException("Failed to connect to /192.168.1.1:80")
+            },
+            coroutineScope = testScope,
+            ioDispatcher = Dispatchers.Unconfined,
+            retryDelayMs = 0L,
+        )
+
+        vm.login("any_pass")
+
+        assertEquals(2, attempts)
+        assertEquals(LoginError.Unreachable, vm.state.value.error)
     }
 }

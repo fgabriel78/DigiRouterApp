@@ -227,8 +227,12 @@ private fun LoginScreen(
                 else Icon(Icons.AutoMirrored.Filled.Login, null, Modifier.size(ButtonDefaults.IconSize))
                 Text(stringResource(R.string.login_button), Modifier.padding(start = 8.dp))
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Filled.Info, null, Modifier.size(18.dp), tint = c.onSurfaceVariant)
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            ) {
+                Icon(Icons.Filled.Info, null, Modifier.size(16.dp).padding(top = 2.dp), tint = c.onSurfaceVariant)
                 Text(stringResource(R.string.login_busy_warning), style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
             }
         }
