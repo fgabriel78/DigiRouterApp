@@ -381,7 +381,7 @@ private fun HomeScreen(
     onLogout: () -> Unit,
 ) {
     val allPages = Catalog.visiblePages(username)
-    val quickAccessIds = setOf("dashboard", "devices", "speedtest", "wifi")
+    val quickAccessIds = setOf("dashboard", "devices", "topology", "speedtest")
     val quickAccessPages = quickAccessIds.mapNotNull { id -> allPages.find { it.id == id } }
     val categoryGroups = allPages
         .filter { it.id !in quickAccessIds }
@@ -557,6 +557,7 @@ private fun QuickAccessTile(
     val (badgeContainer, badgeContent) = when (page.id) {
         "dashboard" -> c.primaryContainer to c.onPrimaryContainer
         "devices" -> c.secondaryContainer to c.onSecondaryContainer
+        "topology" -> c.primaryContainer to c.onPrimaryContainer
         "speedtest" -> c.tertiaryContainer to c.onTertiaryContainer
         "wifi" -> c.primaryContainer to c.onPrimaryContainer
         else -> c.surfaceContainerHighest to c.onSurface

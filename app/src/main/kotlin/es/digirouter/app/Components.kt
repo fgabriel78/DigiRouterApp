@@ -19,7 +19,9 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Lan
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Lightbulb
@@ -67,6 +69,7 @@ import es.routerapp.protocol.pages.Group
 fun pageIcon(id: String): ImageVector = when (id) {
     "dashboard" -> Icons.Filled.Dashboard
     "devices" -> Icons.Filled.Devices
+    "topology" -> Icons.Filled.Hub
     "wifi" -> Icons.Filled.Wifi
     "wifi-radio" -> Icons.Filled.CellTower
     "wifi-adv" -> Icons.Filled.Tune
@@ -94,6 +97,7 @@ fun pageIcon(id: String): ImageVector = when (id) {
     "parental-control" -> Icons.Filled.People
     "qos" -> Icons.Filled.Speed
     "vpn" -> Icons.Filled.Lock
+    "system-log" -> Icons.Filled.Insights
     "remote-mgmt" -> Icons.Filled.Shield
     "fiber-diag" -> Icons.Filled.Lan
     "dual-diag" -> Icons.Filled.SwapHoriz

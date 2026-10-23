@@ -144,8 +144,8 @@ object Catalog {
     )
 
     private val wifiAdvanced = Page(
-        id = "wifi-adv", title = "Advanced Wi-Fi", group = Group.WIFI,
-        description = "Beamforming, MU-MIMO, OFDMA, TWT, intervals and band steering",
+        id = "wifi-adv", title = "Advanced Wi-Fi & WPS", group = Group.WIFI,
+        description = "Beamforming, band steering, WPS and radio parameters",
         sections = listOf(
             Section(
                 id = "adv", title = "Advanced options", oid = "DEV2_ADT_WIFI_COMMON", multi = true, itemTitle = ::bandTitle,
@@ -167,35 +167,9 @@ object Catalog {
                 id = "steering", title = "Band steering", oid = "DEV2_WIFI_BANDSTEERING",
                 fields = listOf(sw("enable", "Band steering (move clients to 5 GHz)")),
             ),
-        ),
-    )
-
-    private val wps = Page(
-        id = "wps", title = "WPS", group = Group.WIFI,
-        sections = listOf(
             Section(
                 id = "wps", title = "WPS", oid = "DEV2_ADT_WIFI_COMMON", multi = true, itemTitle = ::bandTitle,
                 fields = listOf(sw("WPSEnable", "Enable WPS"), info("WPSState", "Status")),
-            ),
-        ),
-    )
-
-    private val guest = Page(
-        id = "guest", title = "Guest network", group = Group.WIFI,
-        description = "Isolated Wi-Fi for visitors",
-        sections = listOf(
-            Section(
-                id = "guest", title = "Guests", oid = "DEV2_ADT_WIFI_COMMON", multi = true, itemTitle = ::bandTitle,
-                fields = listOf(
-                    sw("guestEnable", "Enabled"),
-                    txt("guestSSID", "Network name (SSID)", 1, 32),
-                    sw("guestSSIDAdvertise", "Broadcast SSID"),
-                    choice("guestModeEnabled", "Security", *securityModes.filter { it.first != "OWE" }.toTypedArray()),
-                    pwd("guestPSK", visibleIf = { it["guestModeEnabled"] != "None" }),
-                    sw("guestIsolationEnable", "Isolate guests from each other"),
-                    sw("guestLANAccessEnable", "Allow access to the local network"),
-                ),
-                saveHook = encryptionHook("guestModeEnabled", "guestWPAWPA2EncryptionMode"),
             ),
         ),
     )
@@ -214,9 +188,26 @@ object Catalog {
         saveHook = encryptionHook("mssid${n}ModeEnabled", "mssid${n}WPAWPA2EncryptionMode"),
     )
 
-    private val multiSsid = Page(
-        id = "mssid", title = "Additional networks (multi-SSID)", group = Group.WIFI,
-        sections = listOf(mssid(1), mssid(2)),
+    private val guest = Page(
+        id = "guest", title = "Guest & extra networks", group = Group.WIFI,
+        description = "Isolated Wi-Fi for visitors and additional SSIDs",
+        sections = listOf(
+            Section(
+                id = "guest", title = "Guests", oid = "DEV2_ADT_WIFI_COMMON", multi = true, itemTitle = ::bandTitle,
+                fields = listOf(
+                    sw("guestEnable", "Enabled"),
+                    txt("guestSSID", "Network name (SSID)", 1, 32),
+                    sw("guestSSIDAdvertise", "Broadcast SSID"),
+                    choice("guestModeEnabled", "Security", *securityModes.filter { it.first != "OWE" }.toTypedArray()),
+                    pwd("guestPSK", visibleIf = { it["guestModeEnabled"] != "None" }),
+                    sw("guestIsolationEnable", "Isolate guests from each other"),
+                    sw("guestLANAccessEnable", "Allow access to the local network"),
+                ),
+                saveHook = encryptionHook("guestModeEnabled", "guestWPAWPA2EncryptionMode"),
+            ),
+            mssid(1),
+            mssid(2),
+        ),
     )
 
     // ---------- Local network ----------
@@ -244,8 +235,8 @@ object Catalog {
     )
 
     private val dhcpReservations = Page(
-        id = "dhcp-static", title = "DHCP reservations", group = Group.NETWORK,
-        description = "Always assign the same IP to a device",
+        id = "dhcp-static", title = "DHCP reservations & ARP", group = Group.NETWORK,
+        description = "Static IP assignments and IP-MAC binding",
         sections = listOf(
             Section(
                 id = "static", title = "Reservations", oid = "DEV2_DHCPV4_POOL_STATICADDR", multi = true,
@@ -263,6 +254,7 @@ object Catalog {
                     parent = ParentRef("DEV2_DHCPV4_SERVER_POOL", "X_TP_MainPool", "1"),
                 ),
             ),
+            Section(id = "arp", title = "IP-MAC binding (ARP)", oid = "DEV2_ARP_BIND", fields = listOf(sw("enable", "Enable ARP binding"))),
         ),
     )
 
@@ -298,19 +290,20 @@ object Catalog {
     )
 
     private val ddns = Page(
-        id = "ddns", title = "Dynamic DNS", group = Group.NETWORK,
+        id = "ddns", title = "Dynamic DNS", group = Group.NAT,
+        description = "DynDNS and No-IP dynamic DNS provider accounts",
         sections = listOf(
             ddnsSection("dyndns", "DynDNS", "DEV2_DYN_DNS_CFG"),
             ddnsSection("noip", "No-IP", "DEV2_NOIP_DNS_CFG"),
         ),
     )
 
-    // ---------- Ports and NAT ----------
+    // ---------- Ports & Remote Access ----------
     private val protocols = arrayOf("TCP" to "TCP", "UDP" to "UDP", "TCP or UDP" to "TCP and UDP")
 
     private val virtualServers = Page(
-        id = "virtual-servers", title = "Virtual servers", group = Group.NAT,
-        description = "Forward ports to devices on your network",
+        id = "virtual-servers", title = "Port forwarding", group = Group.NAT,
+        description = "Forward external ports to devices on your network",
         sections = listOf(
             Section(
                 id = "vs", title = "Rules", oid = "DEV2_PORTMAPPING", multi = true,
@@ -345,11 +338,17 @@ object Catalog {
         ),
     )
 
-    private val portTrigger = Page(
-        id = "port-trigger", title = "Port triggering", group = Group.NAT,
+    private val upnp = Page(
+        id = "upnp", title = "UPnP & port triggering", group = Group.NAT,
+        description = "Automatic and application-triggered port mappings",
         sections = listOf(
+            Section(id = "upnp", title = "UPnP", oid = "DEV2_UPNP_CFG", fields = listOf(sw("enable", "Enable UPnP"))),
             Section(
-                id = "pt", title = "Rules", oid = "DEV2_PORTTRIGGERING", multi = true,
+                id = "upnpmap", title = "Active mappings", oid = "DEV2_UPNP_PORTMAPPING", multi = true, readOnly = true, showAll = true,
+                fields = emptyList(), itemTitle = { it["description"] ?: tr("Mapping") },
+            ),
+            Section(
+                id = "pt", title = "Port triggering", oid = "DEV2_PORTTRIGGERING", multi = true,
                 itemTitle = { it["applicationName"].orEmpty().ifBlank { tr("Rule") } },
                 fields = listOf(
                     sw("enable", "Enabled"),
@@ -376,32 +375,14 @@ object Catalog {
     )
 
     private val dmz = Page(
-        id = "dmz", title = "DMZ", group = Group.NAT,
-        description = "Exposes a whole device to the Internet",
+        id = "dmz", title = "DMZ & NAT gateways (ALG)", group = Group.NAT,
+        description = "Exposed DMZ host and application-level gateways",
         sections = listOf(
             Section(
                 id = "dmz", title = "DMZ host", oid = "DEV2_DMZ_HOST_CFG",
                 fields = listOf(sw("enable", "Enable DMZ"), ip("IPAddress", "Host IP", visibleIf = { it["enable"] == "1" })),
                 saveWarning = "A host in the DMZ is exposed to the Internet with no port filtering.",
             ),
-        ),
-    )
-
-    private val upnp = Page(
-        id = "upnp", title = "UPnP", group = Group.NAT,
-        sections = listOf(
-            Section(id = "upnp", title = "UPnP", oid = "DEV2_UPNP_CFG", fields = listOf(sw("enable", "Enable UPnP"))),
-            Section(
-                id = "upnpmap", title = "Active mappings", oid = "DEV2_UPNP_PORTMAPPING", multi = true, readOnly = true, showAll = true,
-                fields = emptyList(), itemTitle = { it["description"] ?: tr("Mapping") },
-            ),
-        ),
-    )
-
-    private val alg = Page(
-        id = "alg", title = "ALG", group = Group.NAT,
-        description = "Application-level gateways",
-        sections = listOf(
             Section(
                 id = "alg", title = "ALG", oid = "DEV2_ALG_CFG",
                 fields = listOf(
@@ -415,6 +396,7 @@ object Catalog {
     // ---------- Security ----------
     private val security = Page(
         id = "ddos", title = "DoS protection", group = Group.SECURITY,
+        description = "Firewall flood protection and ICMP ping filter",
         sections = listOf(
             Section(
                 id = "ddos", title = "Protection against DoS attacks", oid = "DEV2_DDOS_CFG",
@@ -429,16 +411,9 @@ object Catalog {
         ),
     )
 
-    private val arp = Page(
-        id = "arp", title = "IP-MAC binding (ARP)", group = Group.SECURITY,
-        sections = listOf(
-            Section(id = "arp", title = "IP-MAC binding (ARP)", oid = "DEV2_ARP_BIND", fields = listOf(sw("enable", "Enable ARP binding"))),
-        ),
-    )
-
     // ---------- Storage ----------
     private val storage = Page(
-        id = "storage", title = "File servers", group = Group.STORAGE,
+        id = "storage", title = "File servers", group = Group.NETWORK,
         description = "Samba, FTP and DLNA for USB drives",
         sections = listOf(
             Section(
@@ -463,7 +438,8 @@ object Catalog {
 
     // ---------- System ----------
     private val time = Page(
-        id = "time", title = "Date and time", group = Group.SYSTEM,
+        id = "time", title = "System preferences", group = Group.SYSTEM,
+        description = "Date and time, LED schedule and traffic statistics",
         sections = listOf(
             Section(
                 id = "time", title = "System time", oid = "DEV2_TIME",
@@ -477,12 +453,6 @@ object Catalog {
                     sw("daylightSavingsUsed", "Automatic daylight saving time"),
                 ),
             ),
-        ),
-    )
-
-    private val led = Page(
-        id = "led", title = "LED", group = Group.SYSTEM,
-        sections = listOf(
             Section(
                 id = "led", title = "Router LEDs", oid = "DEV2_LED_SCHEDULE_CFG",
                 fields = listOf(
@@ -492,11 +462,16 @@ object Catalog {
                     Field("endTime", "Turn on at", FieldType.TimeOfDay, visibleIf = { it["masterEnable"] == "1" && it["enable"] == "1" }),
                 ),
             ),
+            Section(
+                id = "stat", title = "Statistics", oid = "DEV2_STAT_CFG",
+                fields = listOf(sw("enable", "Enable statistics"), num("interval", "Interval", 5, 60, "s")),
+            ),
         ),
     )
 
     private val reboot = Page(
         id = "reboot", title = "Reboot", group = Group.SYSTEM,
+        description = "Scheduled daily reboot and immediate restart",
         sections = listOf(
             Section(
                 id = "sched", title = "Scheduled reboot", oid = "DEV2_REBOOT_SCHEDULE_CFG",
@@ -513,19 +488,13 @@ object Catalog {
         ),
     )
 
-    private val stats = Page(
-        id = "stats", title = "Traffic statistics", group = Group.SYSTEM,
-        sections = listOf(
-            Section(id = "stat", title = "Statistics", oid = "DEV2_STAT_CFG",
-                fields = listOf(sw("enable", "Enable statistics"), num("interval", "Interval", 5, 60, "s"))),
-        ),
-    )
-
     // ---------- Status & Diagnostics ----------
     private val dashboard = Page(id = "dashboard", title = "Summary", group = Group.STATUS,
         description = "Router, Internet and Wi-Fi status", custom = true)
     private val devices = Page(id = "devices", title = "Connected devices", group = Group.STATUS,
         description = "Wired and Wi-Fi clients", custom = true)
+    private val topology = Page(id = "topology", title = "Network topology", group = Group.STATUS,
+        description = "Mesh nodes, links and client tree", custom = true)
     private val speedtest = Page(id = "speedtest", title = "Speed test", group = Group.STATUS,
         description = "Test Wi-Fi download, upload, and latency", custom = true)
     private val fiberDiag = Page(id = "fiber-diag", title = "Fiber Diagnostics", group = Group.ASSISTANT,
@@ -539,28 +508,41 @@ object Catalog {
 
     private val qos = Page(id = "qos", title = "Intelligent QoS", group = Group.NETWORK,
         description = "Bandwidth caps, priority queues and device prioritization", custom = true, adminOnly = true)
-    private val vpn = Page(id = "vpn", title = "VPN Server", group = Group.NETWORK,
+    private val vpn = Page(id = "vpn", title = "VPN Server", group = Group.NAT,
         description = "Host OpenVPN, IPSec and PPTP servers for secure home access", custom = true, adminOnly = true)
 
     private val backup = Page(id = "backup", title = "Backup & restore", group = Group.SYSTEM,
         description = "Save and restore configuration snapshots", custom = true)
-    private val systemLog = Page(id = "system-log", title = "System Log", group = Group.SYSTEM,
+    private val systemLog = Page(id = "system-log", title = "System Log", group = Group.ASSISTANT,
         description = "Live router events, diagnostic traces and syslog sensitivity", custom = true, adminOnly = true)
     private val remoteMgmt = Page(id = "remote-mgmt", title = "Remote Management", group = Group.SYSTEM,
         description = "Terminal daemons, web management ports, SSL certificates, and operator TR-069 audit", custom = true, adminOnly = true)
 
     val pages: List<Page> = listOf(
-        dashboard, devices, speedtest, fiberDiag, dualDiag,
-        wifiMain, wifiRadio, wifiAdvanced, wps, guest, multiSsid,
-        lan, dhcpReservations, ddns, qos, vpn,
-        virtualServers, portTrigger, dmz, upnp, alg,
-        securityHealth, parentalControl, security, arp,
-        storage,
-        time, led, reboot, backup, systemLog, remoteMgmt, stats,
+        dashboard, devices, topology, speedtest,
+        wifiMain, guest, wifiRadio, wifiAdvanced,
+        lan, dhcpReservations, qos, storage,
+        virtualServers, upnp, dmz, ddns, vpn,
+        securityHealth, parentalControl, security,
+        fiberDiag, dualDiag, systemLog,
+        time, backup, remoteMgmt, reboot,
+    )
+
+    private val aliases: Map<String, String> = mapOf(
+        "mssid" to "guest",
+        "wps" to "wifi-adv",
+        "arp" to "dhcp-static",
+        "port-trigger" to "upnp",
+        "alg" to "dmz",
+        "led" to "time",
+        "stats" to "time",
     )
 
     fun visiblePages(username: String): List<Page> =
         pages.filter { !it.adminOnly || username.equals("admin", ignoreCase = true) }
 
-    fun byId(id: String): Page? = pages.firstOrNull { it.id == id }
+    fun byId(id: String): Page? {
+        val resolvedId = aliases[id] ?: id
+        return pages.firstOrNull { it.id == resolvedId }
+    }
 }

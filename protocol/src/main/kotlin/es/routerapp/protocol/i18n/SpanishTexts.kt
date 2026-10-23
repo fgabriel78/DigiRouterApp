@@ -8,9 +8,13 @@ object SpanishTexts {
     val table: Map<String, String> = mapOf(
         // Groups
         "Status" to "Estado",
+        "Diagnostics" to "Diagnóstico",
         "Local network" to "Red local",
+        "Local network & storage" to "Red local y almacenamiento",
         "Ports and NAT" to "Puertos y NAT",
+        "Ports & remote access" to "Puertos y acceso remoto",
         "Security" to "Seguridad",
+        "Security & family" to "Seguridad y familia",
         "USB and storage" to "USB y almacenamiento",
         "System" to "Sistema",
 
@@ -53,6 +57,8 @@ object SpanishTexts {
         "Router, Internet and Wi-Fi status" to "Estado del router, Internet y Wi-Fi",
         "Connected devices" to "Dispositivos conectados",
         "Wired and Wi-Fi clients" to "Clientes por cable y Wi-Fi",
+        "Network topology" to "Topología de red",
+        "Mesh nodes, links and client tree" to "Nodos mesh, enlaces y árbol de clientes",
         "Speed test" to "Test de velocidad",
         "Test Wi-Fi download, upload, and latency" to "Mide velocidad de descarga, subida y latencia Wi-Fi",
         "DIGI Assistant" to "Asistente DIGI",
@@ -93,6 +99,8 @@ object SpanishTexts {
         "Changing the radio configuration may cut the Wi-Fi connection for a few seconds." to
             "Cambiar la configuración de radio puede cortar la conexión Wi-Fi durante unos segundos.",
         "Advanced Wi-Fi" to "Wi-Fi avanzado",
+        "Advanced Wi-Fi & WPS" to "Wi-Fi avanzado y WPS",
+        "Beamforming, band steering, WPS and radio parameters" to "Beamforming, band steering, WPS y parámetros de radio",
         "Beamforming, MU-MIMO, OFDMA, TWT, intervals and band steering" to
             "Beamforming, MU-MIMO, OFDMA, TWT, intervalos y band steering",
         "Advanced options" to "Opciones avanzadas",
@@ -104,7 +112,9 @@ object SpanishTexts {
         "Band steering (move clients to 5 GHz)" to "Band steering (mover clientes a 5 GHz)",
         "Enable WPS" to "Activar WPS",
         "Guest network" to "Red de invitados",
+        "Guest & extra networks" to "Red de invitados y adicionales",
         "Isolated Wi-Fi for visitors" to "Wi-Fi aislada para visitas",
+        "Isolated Wi-Fi for visitors and additional SSIDs" to "Wi-Fi aislada para visitas y SSIDs adicionales",
         "Guests" to "Invitados",
         "Isolate guests from each other" to "Aislar invitados entre sí",
         "Allow access to the local network" to "Permitir acceso a la red local",
@@ -128,12 +138,15 @@ object SpanishTexts {
         "Changing the IP or the DHCP range may leave you without access to the router until your device renews its connection." to
             "Cambiar la IP o el rango DHCP puede dejarte sin acceso al router hasta que renueves la conexión de tu dispositivo.",
         "DHCP reservations" to "Reservas DHCP",
+        "DHCP reservations & ARP" to "Reservas DHCP y ARP",
+        "Static IP assignments and IP-MAC binding" to "Asignaciones de IP estática y vinculación IP-MAC",
         "Always assign the same IP to a device" to "Asigna siempre la misma IP a un dispositivo",
         "Reservations" to "Reservas",
         "MAC address" to "Dirección MAC",
         "Reserved IP address" to "Dirección IP reservada",
         "New reservation" to "Nueva reserva",
         "Dynamic DNS" to "DNS dinámico",
+        "DynDNS and No-IP dynamic DNS provider accounts" to "Cuentas de proveedores de DNS dinámico DynDNS y No-IP",
         "Connect" to "Conectar",
         "Enable the service to save the account data" to "Activa el servicio para guardar los datos de la cuenta",
         "The router will try to connect to the service. If you already use another dynamic DNS provider, disconnect it first." to
@@ -141,7 +154,8 @@ object SpanishTexts {
 
         // Ports and NAT
         "Virtual servers" to "Servidores virtuales",
-        "Forward ports to devices on your network" to "Redirección de puertos hacia dispositivos de tu red",
+        "Port forwarding" to "Reenvío de puertos",
+        "Forward external ports to devices on your network" to "Redirección de puertos hacia dispositivos de tu red",
         "External port" to "Puerto externo",
         "Internal port" to "Puerto interno",
         "Internal IP" to "IP interna",
@@ -155,11 +169,15 @@ object SpanishTexts {
         "Open protocol" to "Protocolo a abrir",
         "Exposes a whole device to the Internet" to "Expone un dispositivo completo a Internet",
         "DMZ host" to "Host DMZ",
+        "DMZ & NAT gateways (ALG)" to "DMZ y pasarelas NAT (ALG)",
+        "Exposed DMZ host and application-level gateways" to "Host DMZ expuesto y pasarelas de nivel de aplicación",
         "Enable DMZ" to "Activar DMZ",
         "Host IP" to "IP del host",
         "A host in the DMZ is exposed to the Internet with no port filtering." to
             "Un host en DMZ queda expuesto a Internet sin filtrado de puertos.",
         "Enable UPnP" to "Activar UPnP",
+        "UPnP & port triggering" to "UPnP y port triggering",
+        "Automatic and application-triggered port mappings" to "Mapeos de puertos automáticos y por aplicación",
         "Active mappings" to "Mapeos activos",
         "Mapping" to "Mapeo",
         "Application-level gateways" to "Pasarelas de nivel de aplicación",
@@ -167,6 +185,7 @@ object SpanishTexts {
         // Security
         "DoS protection" to "Protección DoS",
         "Protection against DoS attacks" to "Protección contra ataques DoS",
+        "Firewall flood protection and ICMP ping filter" to "Protección contra inundaciones y filtro de ping ICMP",
         "Enable protection" to "Activar protección",
         "ICMP flood filter" to "Filtro ICMP-Flood",
         "UDP flood filter" to "Filtro UDP-Flood",
@@ -189,6 +208,8 @@ object SpanishTexts {
 
         // System
         "Date and time" to "Fecha y hora",
+        "System preferences" to "Preferencias del sistema",
+        "Date and time, LED schedule and traffic statistics" to "Fecha y hora, horario de LEDs y estadísticas de tráfico",
         "System time" to "Hora del sistema",
         "Current time" to "Hora actual",
         "NTP status" to "Estado NTP",
@@ -204,6 +225,7 @@ object SpanishTexts {
         "Turn on at" to "Encender a las",
         "Reboot" to "Reinicio",
         "Scheduled reboot" to "Reinicio programado",
+        "Scheduled daily reboot and immediate restart" to "Reinicio diario programado y reinicio inmediato",
         "Reboot automatically" to "Reiniciar automáticamente",
         "Reboot the router now" to "Reiniciar el router ahora",
         "The router will restart and you will lose the connection for 1-2 minutes. Continue?" to

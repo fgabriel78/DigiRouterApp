@@ -29,7 +29,7 @@ class CatalogRoleTest {
         val page = Catalog.byId("vpn")
         assertNotNull(page)
         assertEquals("VPN Server", page?.title)
-        assertEquals(Group.NETWORK, page?.group)
+        assertEquals(Group.NAT, page?.group)
         assertTrue(page?.adminOnly == true)
         assertTrue(page?.custom == true)
 
@@ -54,5 +54,52 @@ class CatalogRoleTest {
 
         val userPages = Catalog.visiblePages("user")
         assertFalse(userPages.any { it.id == "remote-mgmt" })
+    }
+
+    @Test
+    fun testSystemLogAdminRestrictedInDiagnosticsGroup() {
+        val page = Catalog.byId("system-log")
+        assertNotNull(page)
+        assertEquals("System Log", page?.title)
+        assertEquals(Group.ASSISTANT, page?.group)
+        assertTrue(page?.adminOnly == true)
+        assertTrue(page?.custom == true)
+
+        val adminPages = Catalog.visiblePages("admin")
+        assertTrue(adminPages.any { it.id == "system-log" })
+
+        val userPages = Catalog.visiblePages("user")
+        assertFalse(userPages.any { it.id == "system-log" })
+    }
+
+    @Test
+    fun testTopologyRegisteredInStatusGroup() {
+        val page = Catalog.byId("topology")
+        assertNotNull(page)
+        assertEquals("Network topology", page?.title)
+        assertEquals(Group.STATUS, page?.group)
+        assertTrue(page?.custom == true)
+        assertFalse(page?.adminOnly == true)
+    }
+
+    @Test
+    fun testLegacyAliasesResolveToConsolidatedPages() {
+        assertEquals("wifi-adv", Catalog.byId("wps")?.id)
+        assertEquals("guest", Catalog.byId("mssid")?.id)
+        assertEquals("dhcp-static", Catalog.byId("arp")?.id)
+        assertEquals("upnp", Catalog.byId("port-trigger")?.id)
+        assertEquals("dmz", Catalog.byId("alg")?.id)
+        assertEquals("time", Catalog.byId("led")?.id)
+        assertEquals("time", Catalog.byId("stats")?.id)
+    }
+
+    @Test
+    fun testAllPagesHaveNonEmptyDescriptions() {
+        for (page in Catalog.pages) {
+            assertFalse(
+                "Page ${page.id} has blank or missing description",
+                page.description.isNullOrBlank(),
+            )
+        }
     }
 }
